@@ -68,9 +68,12 @@ shape rather than crashing.
 
 **Your name.** Read from your macOS account automatically. No setup.
 
-**Nothing is stored, ever.** No history, no record of what you were shown,
-no analytics, no network calls. The app reads its bundled content and shows
-you today's slice of it. That's the entire data flow.
+**Nothing is stored, ever, except a version number.** No history, no record
+of what you were shown, no analytics. The one exception: once a day, the app
+checks GitHub for the latest release tag, so it can show a small "Update
+available" link if you're behind — that check and its timestamp are the only
+things saved locally (`UserDefaults`), and the only network call the app
+makes. Miss it entirely and nothing breaks; it just won't nudge you.
 
 **Unsigned, on purpose.** This isn't in the Mac App Store and isn't signed
 with a paid Apple Developer account — that costs money and review time for
@@ -81,8 +84,14 @@ the zip-download path needs one right-click → Open instead.
 see `licenses/`), bundled directly and registered at launch — no system
 font install, no licensing cost.
 
-**What it needs.** macOS 13 or later. Nothing else — no dependencies, no
-accounts, no permissions to grant.
+**What it needs.** macOS 13 or later, and a network connection once a day
+for the update check (fails silently offline). No accounts, no permissions
+to grant.
+
+**Shipping a new release.** Bump `VERSION` at the top of
+`scripts/build-app.sh` to match the git tag you're about to push — that's
+what the update check compares against. Build, zip, tag, `gh release
+create`, same as any release.
 
 ## If something looks wrong
 

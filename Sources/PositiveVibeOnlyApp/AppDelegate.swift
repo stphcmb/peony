@@ -10,10 +10,11 @@ private struct AnimatedCardView: View {
     let greeting: Greeting?
     let name: String?
     let reduceMotion: Bool
+    @ObservedObject var updateState: UpdateState
     @State private var isVisible = false
 
     var body: some View {
-        FlowerCardView(greeting: greeting, name: name)
+        FlowerCardView(greeting: greeting, name: name, updateState: updateState)
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.94))
             .onAppear {
@@ -24,11 +25,13 @@ private struct AnimatedCardView: View {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: NSPanel!
     private var outsideClickMonitor: Any?
     private var keyMonitor: Any?
+    private let updateState = UpdateState()
 
     private let panelSize: CGFloat = 640
 
@@ -80,8 +83,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let greeting = content.flatMap { Selection.greeting(for: $0) }
         let name = NSFullUserName().components(separatedBy: " ").first
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }
 
-        let hosting = NSHostingView(rootView: AnimatedCardView(greeting: greeting, name: name, reduceMotion: reduceMotion))
+        let hosting = NSHostingView(rootView: AnimatedCardView(greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState))
         hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
         panel.contentView = hosting
         panel.alphaValue = 1
@@ -89,10 +93,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Anchor under the status item, matching NSPopover's default
         // placement: horizontally centred on the button, top edge at the
         // button's bottom. The 640pt frame is mostly transparent margin —
-        // the bloom's petal tips reach 300pt from centre, per spec.
+        // the bloom's petal tips reach 300pt from centre, per spec. Clamped
+        // to the screen's visible frame so a status item near a screen edge
+        // (small display, external monitor) can't push most of the card
+        // off-screen.
         let buttonFrameInScreen = buttonWindow.convertToScreen(button.frame)
-        let originX = buttonFrameInScreen.midX - panelSize / 2
-        let originY = buttonFrameInScreen.minY - panelSize
+        let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrameInScreen
+        var originX = buttonFrameInScreen.midX - panelSize / 2
+        var originY = buttonFrameInScreen.minY - panelSize
+        originX = min(max(originX, screenFrame.minX), screenFrame.maxX - panelSize)
+        originY = max(originY, screenFrame.minY)
         panel.setFrameOrigin(NSPoint(x: originX, y: originY))
 
         panel.orderFrontRegardless()

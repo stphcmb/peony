@@ -7,6 +7,10 @@
 
 set -euo pipefail
 
+# Bump this to match the git tag before cutting a release — the update
+# nudge (UpdateChecker.swift) compares this against GitHub's latest tag.
+VERSION="1.0.2"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR"
 
@@ -39,7 +43,7 @@ fi
 # source rather than routed through SPM's resource bundle.
 cp "$DIR/Sources/PositiveVibeOnlyApp/Resources/Icon/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
-cat > "$APP/Contents/Info.plist" <<'PLIST_EOF'
+cat > "$APP/Contents/Info.plist" <<PLIST_EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -49,9 +53,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST_EOF'
   <key>CFBundleIdentifier</key>
   <string>com.positivevibeonly.flowers</string>
   <key>CFBundleVersion</key>
-  <string>1.0</string>
+  <string>$VERSION</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
+  <string>$VERSION</string>
   <key>CFBundleExecutable</key>
   <string>Flowers</string>
   <key>CFBundleIconFile</key>

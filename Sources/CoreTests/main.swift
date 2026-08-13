@@ -123,6 +123,15 @@ do {
     check("every shipped flower name has its own bloom spec", allCovered)
 }
 
+// Version comparison for the update-available nudge.
+check("v-prefixed patch bump is newer", VersionCheck.isNewer(latestTag: "v1.0.2", currentVersion: "1.0.1"))
+check("same version is not newer", !VersionCheck.isNewer(latestTag: "v1.0.1", currentVersion: "1.0.1"))
+check("older tag is not newer", !VersionCheck.isNewer(latestTag: "v1.0.0", currentVersion: "1.0.1"))
+check("minor bump beats any patch level", VersionCheck.isNewer(latestTag: "v1.1.0", currentVersion: "1.0.99"))
+check("shorter version treats missing parts as zero", VersionCheck.isNewer(latestTag: "v1.1", currentVersion: "1.0.5"))
+check("malformed tag never claims newer", !VersionCheck.isNewer(latestTag: "not-a-version", currentVersion: "1.0.1"))
+check("empty current version never claims newer", !VersionCheck.isNewer(latestTag: "v1.0.1", currentVersion: ""))
+
 if failures > 0 {
     print("\n\(failures) failure(s)")
     exit(1)

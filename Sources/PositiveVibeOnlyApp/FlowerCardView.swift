@@ -9,7 +9,9 @@ import PositiveVibeOnlyCore
 struct CardContentView: View {
     let greeting: Greeting
     let name: String?
+    let updateAvailable: Bool
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openURL) private var openURL
 
     private var colors: CardTextColors {
         BloomCatalog.textColors(for: greeting.flower?.name ?? "Daisy")
@@ -87,6 +89,17 @@ struct CardContentView: View {
                     .foregroundColor(secondary)
                     .multilineTextAlignment(.center)
             }
+
+            if updateAvailable {
+                Button {
+                    openURL(UpdateChecker.releasesPageURL)
+                } label: {
+                    Text("Update available →")
+                        .font(.custom("Karla", size: 11.5))
+                        .foregroundColor(muted)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.top, 34)
         .padding(.horizontal, 30)
@@ -111,6 +124,7 @@ struct CardContentView: View {
 struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
+    @ObservedObject var updateState: UpdateState
 
     var body: some View {
         ZStack {
@@ -118,7 +132,7 @@ struct FlowerCardView: View {
                 BloomView(spec: BloomCatalog.spec(for: flower.name))
             }
             if let greeting {
-                CardContentView(greeting: greeting, name: name)
+                CardContentView(greeting: greeting, name: name, updateAvailable: updateState.isAvailable)
             } else {
                 Text("Could not load today's content.")
                     .font(.custom("Karla", size: 13))
