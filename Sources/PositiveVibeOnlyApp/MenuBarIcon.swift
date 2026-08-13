@@ -7,12 +7,21 @@ enum MenuBarIcon {
     /// needs. `isTemplate = true` so AppKit recolors it for light/dark menu
     /// bars and dims it correctly when the app is inactive.
     static func make() -> NSImage {
-        let size = CGFloat(18)
         let petalWidth: CGFloat = 6
         let petalHeight: CGFloat = 11
         let offset: CGFloat = 6.2
         let strokeWidth: CGFloat = 1.3
         let dotDiameter: CGFloat = 3.6
+
+        // The design spec's numbers (offset 6.2 + petal height 11 = 17.2pt
+        // reach from centre) were written for a CSS mockup, where unbounded
+        // overflow just renders past the nominal 18x18 box. AppKit's image
+        // context has no such grace — it clips hard at its own bounds, so a
+        // literal 18x18 canvas silently cut off most of every petal, leaving
+        // only a rounded sliver near the centre. The canvas has to actually
+        // contain the geometry it draws; sized here to the petals' real
+        // reach plus a small margin, not the reference frame's box.
+        let size = 2 * (offset + petalHeight) + 4
 
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
             let center = NSPoint(x: size / 2, y: size / 2)
