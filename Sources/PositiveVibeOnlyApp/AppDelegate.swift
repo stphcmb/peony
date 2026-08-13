@@ -11,10 +11,12 @@ private struct AnimatedCardView: View {
     let name: String?
     let reduceMotion: Bool
     @ObservedObject var updateState: UpdateState
+    var onDragChanged: ((CGSize) -> Void)? = nil
+    var onDragEnded: (() -> Void)? = nil
     @State private var isVisible = false
 
     var body: some View {
-        FlowerCardView(greeting: greeting, name: name, updateState: updateState)
+        FlowerCardView(greeting: greeting, name: name, updateState: updateState, onDragChanged: onDragChanged, onDragEnded: onDragEnded)
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.94))
             .onAppear {
@@ -32,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var outsideClickMonitor: Any?
     private var keyMonitor: Any?
     private let updateState = UpdateState()
+    private var dragStartOrigin: NSPoint?
 
     private let panelSize: CGFloat = 640
 
@@ -85,7 +88,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }
 
-        let hosting = NSHostingView(rootView: AnimatedCardView(greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState))
+        dragStartOrigin = nil
+        let hosting = NSHostingView(rootView: AnimatedCardView(
+            greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState,
+            onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
+            onDragEnded: { [weak self] in self?.handleDragEnded() }
+        ))
         hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
         panel.contentView = hosting
         panel.alphaValue = 1
@@ -107,6 +115,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         panel.orderFrontRegardless()
         installDismissMonitors()
+    }
+
+    /// Drives dragging manually instead of `isMovableByWindowBackground`,
+    /// which never fires here — the SwiftUI content covers the whole
+    /// window, so AppKit sees no exposed "background" to grab. SwiftUI's
+    /// `DragGesture` gives translation cumulative from drag start, so the
+    /// origin is captured once (on the first change) and every subsequent
+    /// frame sets the window relative to that fixed start, not the last
+    /// frame — accumulating deltas frame-over-frame would drift.
+    private func handleDragChanged(_ translation: CGSize) {
+        if dragStartOrigin == nil {
+            dragStartOrigin = panel.frame.origin
+        }
+        guard let start = dragStartOrigin else { return }
+        // SwiftUI's y grows downward; AppKit's window origin y grows upward.
+        let newOrigin = NSPoint(x: start.x + translation.width, y: start.y - translation.height)
+        panel.setFrameOrigin(newOrigin)
+    }
+
+    private func handleDragEnded() {
+        dragStartOrigin = nil
     }
 
     private func dismissPanel() {

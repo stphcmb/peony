@@ -125,6 +125,8 @@ struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
     @ObservedObject var updateState: UpdateState
+    var onDragChanged: ((CGSize) -> Void)? = nil
+    var onDragEnded: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -142,5 +144,13 @@ struct FlowerCardView: View {
             }
         }
         .frame(width: 640, height: 640)
+        // .simultaneousGesture (not .gesture) so this coexists with the
+        // "Update available" button inside the card — a quick tap still
+        // reaches the button; only an actual drag moves the window.
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 2)
+                .onChanged { value in onDragChanged?(value.translation) }
+                .onEnded { _ in onDragEnded?() }
+        )
     }
 }
