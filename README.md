@@ -32,12 +32,49 @@ To remove it:
 ./uninstall.sh
 ```
 
-### Just want to try it without cloning?
+### Installing from the zip (no cloning)
 
-Grab `Peony.zip` from this repo's [Releases](../../releases) page, unzip,
-drag `Peony.app` to Applications, then **right-click → Open** the first
-time (macOS warns because it isn't signed with a paid Apple Developer
-account — that's expected, and only happens once).
+1. Download `Peony.zip` from the [latest release](../../releases/latest).
+2. Double-click the zip to unpack it, then drag `Peony.app` into your
+   **Applications** folder.
+3. Open it. The first launch is where macOS may push back — see below.
+4. Look for the small pink bloom in your menu bar. That's it.
+
+The zip route doesn't set the app to start at login — reopen it after a
+restart, or use the `./install.sh` route above, which handles login and
+skips the security warning entirely.
+
+### "Apple could not verify this app" — how to open it anyway
+
+Peony isn't signed with a paid Apple Developer account (it's a small
+internal tool, not an App Store product), so the first time you open it
+macOS shows a warning. Nothing is wrong with the app — this happens to
+every app distributed outside the App Store without a paid signature.
+You only have to get past it once.
+
+**macOS 15 (Sequoia) and later:**
+
+1. Double-click `Peony.app` — macOS blocks it. Click **Done**.
+2. Open **System Settings → Privacy & Security**, scroll down to the
+   Security section.
+3. You'll see *"Peony" was blocked to protect your Mac* — click
+   **Open Anyway**.
+4. Confirm in the dialog (it may ask for your password or Touch ID).
+
+**macOS 13–14 (Ventura / Sonoma):**
+
+1. **Right-click** (or Control-click) `Peony.app` and choose **Open**.
+2. In the warning dialog, click **Open**.
+
+**Still blocked, or it says the app "is damaged"?** Clear the quarantine
+flag from Terminal and open it again:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Peony.app
+```
+
+(That's exactly what `install.sh` does for you — which is why the clone
+route never hits any of this.)
 
 ## How it decides what to show you
 
