@@ -14,9 +14,13 @@ struct CardContentView: View {
     let updateAvailable: Bool
     var onRefresh: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
+    var onTogglePin: (() -> Void)? = nil
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
     @State private var hoveringControls = false
+    // Shared with AppDelegate, which reads the same key to decide whether
+    // clicks in other apps dismiss the card.
+    @AppStorage("KeepCardOnScreen") private var isPinned = false
 
     private var colors: CardTextColors {
         BloomCatalog.textColors(for: greeting.flower?.name ?? "Daisy")
@@ -160,6 +164,15 @@ struct CardContentView: View {
                         .contentShape(Rectangle())
                 }
                 .help("Another one")
+                Button {
+                    isPinned.toggle()
+                    onTogglePin?()
+                } label: {
+                    Image(systemName: isPinned ? "pin.fill" : "pin")
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .help(isPinned ? "Let it close on its own" : "Keep on screen")
                 Button { onClose?() } label: {
                     Image(systemName: "xmark")
                         .frame(width: 18, height: 18)
@@ -234,6 +247,7 @@ struct FlowerCardView: View {
     @ObservedObject var updateState: UpdateState
     var onRefresh: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
+    var onTogglePin: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
 
@@ -249,7 +263,7 @@ struct FlowerCardView: View {
             }
             if let greeting {
                 CardContentView(greeting: greeting, name: name, updateAvailable: updateState.isAvailable,
-                                onRefresh: onRefresh, onClose: onClose)
+                                onRefresh: onRefresh, onClose: onClose, onTogglePin: onTogglePin)
             } else {
                 Text("Could not load today's content.")
                     .font(.custom("Karla", size: 13))

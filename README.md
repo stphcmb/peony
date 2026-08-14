@@ -24,9 +24,10 @@ The icon lives in your menu bar — a small pink bloom. Click it whenever
 you want today's flower; it opens somewhere different on screen each time.
 Right-click for the menu: **Surprise Me** (a one-off random draw),
 **Start at Login** (on by default, toggle it off any time) and **Quit**.
-On the card itself, ↺ draws another surprise, × closes it, and you can drag
-it anywhere on screen. Flower names come with their Vietnamese name
-alongside.
+On the card itself, ↺ draws another surprise, 📌 pins it so it stays up
+while you click around other apps (click again to unpin — the choice is
+remembered), × closes it, and you can drag it anywhere on screen. Flower
+names come with their Vietnamese name alongside.
 
 To remove it:
 
@@ -116,9 +117,9 @@ shape rather than crashing.
 **Nothing is stored, ever, except a version number.** No history, no record
 of what you were shown, no analytics. The one exception: once a day, the app
 checks GitHub for the latest release tag, so it can show a small "Update
-available" link if you're behind — that check and its timestamp are the only
-things saved locally (`UserDefaults`), and the only network call the app
-makes. Miss it entirely and nothing breaks; it just won't nudge you.
+available" link if you're behind — that check, its timestamp, and your 📌
+pin preference are the only things saved locally (`UserDefaults`), and the
+check is the only network call the app makes. Miss it entirely and nothing breaks; it just won't nudge you.
 
 **Unsigned, on purpose.** This isn't in the Mac App Store and isn't signed
 with a paid Apple Developer account — that costs money and review time for

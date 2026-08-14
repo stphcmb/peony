@@ -13,13 +13,14 @@ private struct AnimatedCardView: View {
     @ObservedObject var updateState: UpdateState
     var onRefresh: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
+    var onTogglePin: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
     @State private var isVisible = false
 
     var body: some View {
         FlowerCardView(greeting: greeting, name: name, updateState: updateState,
-                       onRefresh: onRefresh, onClose: onClose,
+                       onRefresh: onRefresh, onClose: onClose, onTogglePin: onTogglePin,
                        onDragChanged: onDragChanged, onDragEnded: onDragEnded)
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.94))
@@ -127,6 +128,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         LoginItem.setEnabled(!LoginItem.isEnabled)
     }
 
+    /// Mirrors the card's pin button (@AppStorage writes the same key).
+    /// When on, the card ignores clicks in other apps and stays up until
+    /// explicitly closed (×, Esc, or the menu bar icon). The panel is
+    /// non-activating, so it never steals focus while it sits there.
+    private var keepsCardOnScreen: Bool {
+        UserDefaults.standard.bool(forKey: "KeepCardOnScreen")
+    }
+
+    /// Called after the card's pin button has already flipped the stored
+    /// value — re-derive the monitors so the change applies immediately,
+    /// not just on the next show.
+    private func handlePinToggled() {
+        if panel.isVisible { installDismissMonitors() }
+    }
+
     /// A random draw instead of today's deterministic pick — one-off, the
     /// next plain click shows today's card again.
     @objc private func showSurpriseGreeting() {
@@ -148,6 +164,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState,
             onRefresh: { [weak self] in self?.showSurpriseGreeting() },
             onClose: { [weak self] in self?.dismissPanel() },
+            onTogglePin: { [weak self] in self?.handlePinToggled() },
             onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
             onDragEnded: { [weak self] in self?.handleDragEnded() }
         ))
@@ -225,8 +242,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func installDismissMonitors() {
         removeDismissMonitors() // re-showing an already-visible panel must not stack monitors
-        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            self?.dismissPanel()
+        if !keepsCardOnScreen {
+            outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+                self?.dismissPanel()
+            }
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // Esc
