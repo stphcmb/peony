@@ -23,6 +23,9 @@ if [ ! -d "$APP_SRC" ]; then
 fi
 
 echo "Installing to /Applications..."
+# Quit a running copy first — otherwise `open -a` below finds it already
+# running and never launches the freshly installed build.
+pkill -x Peony 2>/dev/null || true
 rm -rf "$APP_DEST"
 cp -R "$APP_SRC" "$APP_DEST"
 

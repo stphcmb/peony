@@ -1,17 +1,22 @@
 import AppKit
 
 enum MenuBarIcon {
-    /// The 4c mark from the approved logo turn: five stroked petal capsules
-    /// meeting at a centre dot, nothing filled. Survives 18pt and monochrome
-    /// far better than a filled bloom would — exactly what the menu bar
-    /// needs. `isTemplate = true` so AppKit recolors it for light/dark menu
-    /// bars and dims it correctly when the app is inactive.
+    /// A small colored version of the filled-peony app icon: five petal
+    /// capsules in the brand rose, meeting at a gold centre dot. Not a
+    /// template image — that would flatten it to monochrome; the color is
+    /// the point here, and the rose reads on both light and dark menu
+    /// bars. (The cost: AppKit won't dim it when inactive.)
     static func make() -> NSImage {
-        let petalWidth: CGFloat = 6
+        let petalWidth: CGFloat = 7
         let petalHeight: CGFloat = 11
-        let offset: CGFloat = 6.2
-        let strokeWidth: CGFloat = 1.3
-        let dotDiameter: CGFloat = 3.6
+        let offset: CGFloat = 2.6
+        let dotDiameter: CGFloat = 5
+
+        // Same rose/gold as scripts/render-app-icon.swift's middle ring
+        // and centre, so the two marks read as one identity. Near-solid
+        // alpha — translucent rose muddies to maroon on a dark menu bar.
+        let petalColor = NSColor(red: 226/255.0, green: 92/255.0, blue: 116/255.0, alpha: 0.94)
+        let dotColor = NSColor(red: 0xF6/255.0, green: 0xC7/255.0, blue: 0x7A/255.0, alpha: 1)
 
         // The design spec's numbers (offset 6.2 + petal height 11 = 17.2pt
         // reach from centre) were written for a CSS mockup, where unbounded
@@ -25,7 +30,7 @@ enum MenuBarIcon {
 
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
             let center = NSPoint(x: size / 2, y: size / 2)
-            NSColor.black.setStroke()
+            petalColor.setFill()
 
             for i in 0..<5 {
                 let angle = CGFloat(i) * (2 * .pi / 5)
@@ -35,18 +40,17 @@ enum MenuBarIcon {
 
                 let petalRect = NSRect(x: -petalWidth / 2, y: offset, width: petalWidth, height: petalHeight)
                 let path = NSBezierPath(roundedRect: petalRect, xRadius: petalWidth / 2, yRadius: petalWidth / 2)
-                path.lineWidth = strokeWidth
                 path.transform(using: transform as AffineTransform)
-                path.stroke()
+                path.fill()
             }
 
-            NSColor.black.setFill()
+            dotColor.setFill()
             let dotRect = NSRect(x: center.x - dotDiameter / 2, y: center.y - dotDiameter / 2, width: dotDiameter, height: dotDiameter)
             NSBezierPath(ovalIn: dotRect).fill()
 
             return true
         }
-        image.isTemplate = true
+        image.isTemplate = false
         return image
     }
 }
