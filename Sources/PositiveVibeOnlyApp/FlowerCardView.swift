@@ -1,11 +1,13 @@
 import SwiftUI
 import PositiveVibeOnlyCore
 
-/// The centre "lens" card, sitting on top of the day's bloom. Content order:
-/// greeting + date, flower name + sentence, a dash, quote + author, a dash,
-/// the day's prompt, then a short encouragement as the closing line.
-/// Text colour hue tracks the flower; only lightness changes between light
-/// and dark mode.
+/// The centre card, per the 6a mock: an arch (domed top, rounded bottom)
+/// with two crisply separated sections. The header band — tinted with the
+/// day's flower colour — carries the caps greeting/date line, the flower
+/// name (with its Vietnamese annotation), and the meaning. The cream body
+/// below carries quote + author, the compliment, and a "TODAY" labelled
+/// prompt. Text colour hue tracks the flower; only lightness changes
+/// between light and dark mode.
 struct CardContentView: View {
     let greeting: Greeting
     let name: String?
@@ -23,116 +25,124 @@ struct CardContentView: View {
     private var primary: Color { Color(hex: isDark ? colors.darkPrimary : colors.lightPrimary) }
     private var secondary: Color { Color(hex: isDark ? colors.darkSecondary : colors.lightSecondary) }
     private var muted: Color { Color(hex: isDark ? colors.darkMuted : colors.lightMuted) }
-    private var dash: Color { Color(hex: isDark ? colors.darkDash : colors.lightDash) }
     private var cardFill: Color { Color(hex: isDark ? "#241A12" : "#FFFDFA") }
-
-    private var greetingLine: String {
-        guard let name, !name.isEmpty else { return "Hello" }
-        return "Hi \(name)"
+    private var headerTint: Color {
+        let hex = BloomCatalog.spec(for: greeting.flower?.name ?? "Daisy").outerColorHex
+        return Color(hex: hex).opacity(isDark ? 0.26 : 0.15)
     }
 
-    private func dashDivider() -> some View {
-        RoundedRectangle(cornerRadius: 999)
-            .fill(dash)
-            .frame(width: 22, height: 2)
+    private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
+
+    /// Small-caps section label, the mock's letterspaced style.
+    private func capsText(_ s: String) -> Text {
+        Text(s.uppercased())
+            .font(.custom("Karla", size: 10))
+            .tracking(1.6)
+    }
+
+    private var headerDateLine: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE d MMM"
+        let date = formatter.string(from: Date())
+        guard let name, !name.isEmpty else { return "Hello · \(date)" }
+        return "Hi \(name) · \(date)"
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 2) {
-                Text(greetingLine)
-                    .font(.custom("Fraunces", size: 19))
-                    .foregroundColor(primary)
-                Text(Date(), format: .dateTime.weekday(.wide).day().month(.wide))
-                    .font(.custom("Fraunces", size: 13))
-                    .italic()
+        VStack(spacing: 0) {
+            // ── Header band ──
+            VStack(spacing: 7) {
+                capsText(headerDateLine)
                     .foregroundColor(secondary)
-            }
-
-            if let flower = greeting.flower {
-                VStack(spacing: 6) {
+                if let flower = greeting.flower {
                     // One concatenated Text so the Vietnamese annotation
-                    // wraps together with the name instead of on its own line.
+                    // stays glued to the name; single line, scaling down
+                    // rather than wrapping.
                     (Text(flower.name)
-                        .font(.custom("Fraunces", size: 28))
+                        .font(.custom("Fraunces", size: 27))
                         .tracking(-0.4)
                         .foregroundColor(primary)
                      + Text(flower.nameVi.map { " (\($0))" } ?? "")
                         .font(.custom("Fraunces", size: 13))
                         .italic()
                         .foregroundColor(secondary))
-                        // Always a single line: long pairs ("Chrysanthemum
-                        // (Hoa cúc)") scale down instead of wrapping.
                         .lineLimit(1)
                         .minimumScaleFactor(0.55)
                         .allowsTightening(true)
                     Text(flower.meaning)
-                        .font(.custom("Karla", size: 13.5))
+                        .font(.custom("Fraunces", size: 13))
+                        .italic()
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
                 }
-                dashDivider()
             }
+            .padding(.top, 46)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 20)
+            .frame(maxWidth: .infinity)
+            .background(headerTint)
 
-            VStack(spacing: 4) {
-                Text("\u{201C}\(greeting.quote.text)\u{201D}")
-                    .font(.custom("Fraunces", size: 17))
-                    .italic()
-                    .fontWeight(.light)
-                    .foregroundColor(primary)
-                    .multilineTextAlignment(.center)
-                Text(greeting.quote.author)
-                    .font(.custom("Karla", size: 12.5))
-                    .foregroundColor(muted)
-            }
-
-            dashDivider()
-
-            VStack(spacing: 3) {
-                Text(greeting.prompt.title)
-                    .font(.custom("Fraunces", size: 15))
-                    .foregroundColor(primary)
-                    .multilineTextAlignment(.center)
-                Text(greeting.prompt.body)
-                    .font(.custom("Karla", size: 12.5))
-                    .foregroundColor(secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Text(greeting.compliment)
-                .font(.custom("Karla", size: 13.5))
-                .foregroundColor(primary)
-                .multilineTextAlignment(.center)
-
-            if updateAvailable {
-                Button {
-                    openURL(UpdateChecker.releasesPageURL)
-                } label: {
-                    Text("Update available →")
-                        .font(.custom("Karla", size: 11.5))
+            // ── Body ──
+            VStack(spacing: 17) {
+                VStack(spacing: 5) {
+                    Text("\u{201C}\(greeting.quote.text)\u{201D}")
+                        .font(.custom("Fraunces", size: 17))
+                        .italic()
+                        .fontWeight(.light)
+                        .foregroundColor(primary)
+                        .multilineTextAlignment(.center)
+                    capsText(greeting.quote.author)
                         .foregroundColor(muted)
                 }
-                .buttonStyle(.plain)
-            }
 
-            Text(versionLine)
-                .font(.custom("Karla", size: 10))
-                .foregroundColor(muted.opacity(0.75))
+                Text(greeting.compliment)
+                    .font(.custom("Karla", size: 13.5))
+                    .foregroundColor(primary)
+                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 5) {
+                    capsText("Today")
+                        .foregroundColor(secondary)
+                    Text(greeting.prompt.title)
+                        .font(.custom("Karla", size: 13.5))
+                        .fontWeight(.semibold)
+                        .foregroundColor(primary)
+                        .multilineTextAlignment(.center)
+                    Text(greeting.prompt.body)
+                        .font(.custom("Karla", size: 12.5))
+                        .foregroundColor(secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                if updateAvailable {
+                    Button {
+                        openURL(UpdateChecker.releasesPageURL)
+                    } label: {
+                        Text("Update available →")
+                            .font(.custom("Karla", size: 11.5))
+                            .foregroundColor(muted)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Text(versionLine)
+                    .font(.custom("Karla", size: 10))
+                    .foregroundColor(muted.opacity(0.75))
+            }
+            .padding(.top, 22)
+            .padding(.horizontal, 28)
+            .padding(.bottom, 36)
         }
-        .padding(.top, 34)
-        .padding(.horizontal, 30)
-        .padding(.bottom, 36)
         .frame(width: 258)
         .fixedSize(horizontal: false, vertical: true)
+        .clipShape(arch)
         .background(
-            LensShape(radiusX: 122, radiusY: 92)
+            arch
                 .fill(cardFill)
                 .shadow(color: shadowColor, radius: 20, x: 0, y: 6)
         )
-        // Two quiet controls tucked into the card's top margin: refresh
-        // (a fresh random draw) and close. Kept faint until hovered so
-        // they don't compete with the greeting; the lens's top corners
-        // curve away steeply, so top-centre is the only spot they fit.
+        // Two quiet controls in the dome, above the header text: refresh
+        // (a fresh random draw) and close. Faint until hovered.
         .overlay(alignment: .top) {
             HStack(spacing: 18) {
                 Button { onRefresh?() } label: {
@@ -154,11 +164,11 @@ struct CardContentView: View {
             .opacity(hoveringControls ? 1 : 0.8)
             .animation(.easeOut(duration: 0.15), value: hoveringControls)
             .onHover { hoveringControls = $0 }
-            .padding(.top, 10)
+            .padding(.top, 14)
         }
     }
 
-    /// "v1.0.3 · updated Aug 14, 2026". Version comes from the bundle the
+    /// "v1.1.0 · updated Aug 14, 2026". Version comes from the bundle the
     /// app is actually running from; the date is stamped into Info.plist by
     /// build-app.sh. Under `swift run` (no bundle plist) it shows "dev".
     private var versionLine: String {
@@ -176,8 +186,6 @@ struct CardContentView: View {
     }
 }
 
-/// The full popover content: today's bloom behind, the lens card centred
-/// on top, in a fixed 640x640 frame per the approved handoff spec.
 /// A small gift-note toast: floats in above the bloom when the card
 /// appears, lingers, then fades — the moment of being handed the flowers.
 private struct GiftToast: View {
@@ -209,6 +217,8 @@ private struct GiftToast: View {
     }
 }
 
+/// The full popover content: today's bloom behind, the arch card centred
+/// on top, in a fixed 640x640 frame per the approved handoff spec.
 struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?

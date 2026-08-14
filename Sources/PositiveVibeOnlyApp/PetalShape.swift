@@ -50,6 +50,45 @@ struct PetalShape: Shape {
 /// no built-in for asymmetric corner radii, so this builds the four corners
 /// as true elliptical arcs (quarter-ellipse via a 4-point Bezier
 /// approximation, the same construction CSS itself uses).
+/// The 6a card shape: a full dome across the top (half-ellipse the width of
+/// the card) and conventional rounded corners at the bottom — an arch, like
+/// a garden gate. Distinct from LensShape, whose four corners are equal.
+struct ArchShape: Shape {
+    let topRadiusY: CGFloat
+    let bottomRadius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let rx = rect.width / 2
+        let ry = min(topRadiusY, rect.height / 2)
+        let rb = min(bottomRadius, rect.height / 2)
+        let kx = rx * 0.5523
+        let ky = ry * 0.5523
+        let kb = rb * 0.5523
+
+        let minX = rect.minX, maxX = rect.maxX, minY = rect.minY, maxY = rect.maxY
+
+        var path = Path()
+        path.move(to: CGPoint(x: minX, y: minY + ry))
+        // Top dome: two quarter-ellipse curves meeting at top centre.
+        path.addCurve(to: CGPoint(x: minX + rx, y: minY),
+                      control1: CGPoint(x: minX, y: minY + ry - ky),
+                      control2: CGPoint(x: minX + rx - kx, y: minY))
+        path.addCurve(to: CGPoint(x: maxX, y: minY + ry),
+                      control1: CGPoint(x: minX + rx + kx, y: minY),
+                      control2: CGPoint(x: maxX, y: minY + ry - ky))
+        path.addLine(to: CGPoint(x: maxX, y: maxY - rb))
+        path.addCurve(to: CGPoint(x: maxX - rb, y: maxY),
+                      control1: CGPoint(x: maxX, y: maxY - rb + kb),
+                      control2: CGPoint(x: maxX - rb + kb, y: maxY))
+        path.addLine(to: CGPoint(x: minX + rb, y: maxY))
+        path.addCurve(to: CGPoint(x: minX, y: maxY - rb),
+                      control1: CGPoint(x: minX + rb - kb, y: maxY),
+                      control2: CGPoint(x: minX, y: maxY - rb + kb))
+        path.closeSubpath()
+        return path
+    }
+}
+
 struct LensShape: Shape {
     let radiusX: CGFloat
     let radiusY: CGFloat
