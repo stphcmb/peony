@@ -152,8 +152,10 @@ struct CardContentView: View {
                     .buttonStyle(.plain)
                 }
 
-                capsText(versionLine)
-                    .foregroundColor(muted.opacity(0.6))
+                Text(versionLine)
+                    .font(.custom("Karla", size: 8.5))
+                    .tracking(0.4)
+                    .foregroundColor(muted.opacity(0.4))
             }
             .padding(.top, 22)
             .padding(.horizontal, 28)
@@ -202,7 +204,7 @@ struct CardContentView: View {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? "dev"
         if let built = info?["PeonyBuildDate"] as? String {
-            return "v\(version) · updated \(built)"
+            return "v\(version) · \(built)"
         }
         return "v\(version)"
     }

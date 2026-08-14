@@ -59,7 +59,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST_EOF
   <key>CFBundleExecutable</key>
   <string>Peony</string>
   <key>PeonyBuildDate</key>
-  <string>$(date "+%b %-d, %Y")</string>
+  <string>$(date "+%b %-d")</string>
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundlePackageType</key>
