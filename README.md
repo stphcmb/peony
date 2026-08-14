@@ -1,12 +1,13 @@
 # Peony
 
-A menu bar app that gives you a new flower, a quote, a short encouragement,
-and one small thing to sit with — every day. Click the icon, read for ten
-seconds, get on with your day.
+A menu bar app that gives you a new flower, a quote, and a short
+encouragement every hour, plus one small thing to sit with each day.
+Click the icon, read for ten seconds, get on with your day — or let it
+bloom on its own when the hour turns.
 
-The card isn't a rectangle. It's cut in the shape of the day's bloom —
+The card isn't a rectangle. It's cut in the shape of the hour's bloom —
 petals around a soft centre, like a sticker someone left on your desk. A
-different flower every day, thirty in rotation, each with its own petal
+different flower every hour, thirty in rotation, each with its own petal
 shape and colour.
 
 ## Install
@@ -21,8 +22,11 @@ That builds the app, copies it to `/Applications`, and sets it to start next
 time you log in. No Xcode, no Apple Developer account, no App Store.
 
 The icon lives in your menu bar — a small pink bloom. Click it whenever
-you want today's flower; it opens somewhere different on screen each time.
+you want this hour's flower; it opens somewhere different on screen each
+time. When the hour turns, the card also blooms on its own, lingers about
+twenty seconds, and fades — pin it to keep it, or turn that off entirely.
 Right-click for the menu: **Surprise Me** (a one-off random draw),
+**Bloom Every Hour** (the auto-appearance, on by default),
 **Start at Login** (on by default, toggle it off any time) and **Quit**.
 On the card itself, ↺ draws another surprise, 📌 pins it so it stays up
 while you click around other apps (click again to unpin — the choice is
@@ -81,15 +85,18 @@ route never hits any of this.)
 
 ## How it decides what to show you
 
-Everything is picked from today's date, not randomly — so it's the same for
-everyone on the team on any given day. That's on purpose: it gives you
-something to compare notes on ("did you see today's flower") instead of
-everyone getting a different private feed. (Surprise Me is the escape
-hatch: a random draw that doesn't touch the daily pick.)
+The flower, quote and encouragement are picked from the date and hour, not
+randomly — so they're the same for everyone on the team in any given hour.
+That's on purpose: it gives you something to compare notes on ("did you see
+the three o'clock flower") instead of everyone getting a different private
+feed. (Surprise Me is the escape hatch: a random draw that doesn't touch
+the hourly pick.)
 
-The fourth block — the prompt — alternates by day of the week between two
-pools, each mixing three kinds of invitation: a question worth sitting with,
-a specific act of kindness, or a nudge toward rest.
+The fourth block — the prompt — moves at a slower rhythm: fixed for the
+whole day, alternating by day of the week between two pools, each mixing
+three kinds of invitation: a question worth sitting with, a specific act of
+kindness, or a nudge toward rest. An hour is enough for a quote; a prompt
+deserves a day.
 
 ## Adding your own content
 
@@ -118,8 +125,8 @@ shape rather than crashing.
 of what you were shown, no analytics. The one exception: once a day, the app
 checks GitHub for the latest release tag, so it can show a small "Update
 available" link if you're behind — that check, its timestamp, and your 📌
-pin preference are the only things saved locally (`UserDefaults`), and the
-check is the only network call the app makes. Miss it entirely and nothing breaks; it just won't nudge you.
+pin and Bloom Every Hour preferences are the only things saved locally
+(`UserDefaults`), and the check is the only network call the app makes. Miss it entirely and nothing breaks; it just won't nudge you.
 
 **Unsigned, on purpose.** This isn't in the Mac App Store and isn't signed
 with a paid Apple Developer account — that costs money and review time for

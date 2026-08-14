@@ -27,8 +27,8 @@ func utcCalendar() -> Calendar {
     return cal
 }
 
-func date(_ y: Int, _ m: Int, _ d: Int, _ calendar: Calendar) -> Date {
-    DateComponents(calendar: calendar, timeZone: calendar.timeZone, year: y, month: m, day: d).date!
+func date(_ y: Int, _ m: Int, _ d: Int, _ calendar: Calendar, hour: Int = 0) -> Date {
+    DateComponents(calendar: calendar, timeZone: calendar.timeZone, year: y, month: m, day: d, hour: hour).date!
 }
 
 func makeContent(prompts: [(String, String, String)], quotes: Int = 3, flowers: Int = 2) -> Content {
@@ -57,15 +57,32 @@ do {
     check("Tuesday picks pool B", greeting?.prompt.kind == "B")
 }
 
-// Same day, called twice, must return the same greeting.
+// Same hour, called twice, must return the same greeting.
 do {
     let content = makeContent(prompts: [("A", "T", "tb"), ("B", "W", "wb")])
-    let d = date(2026, 8, 12, calendar)
+    let d = date(2026, 8, 12, calendar, hour: 14)
     let g1 = Selection.greeting(for: content, date: d, calendar: calendar)
     let g2 = Selection.greeting(for: content, date: d, calendar: calendar)
-    check("same day is deterministic", g1?.quote.text == g2?.quote.text
+    check("same hour is deterministic", g1?.quote.text == g2?.quote.text
         && g1?.compliment == g2?.compliment
         && g1?.prompt.title == g2?.prompt.title)
+}
+
+// A new hour on the same day brings a fresh quote and flower.
+do {
+    let content = makeContent(prompts: [("A", "T", "tb")], quotes: 25, flowers: 24)
+    let g10 = Selection.greeting(for: content, date: date(2026, 8, 12, calendar, hour: 10), calendar: calendar)
+    let g11 = Selection.greeting(for: content, date: date(2026, 8, 12, calendar, hour: 11), calendar: calendar)
+    check("next hour changes the quote", g10?.quote.text != g11?.quote.text)
+    check("next hour changes the flower", g10?.flower?.name != g11?.flower?.name)
+}
+
+// The prompt is a day-scale invitation — it must NOT change with the hour.
+do {
+    let content = makeContent(prompts: [("A", "T0", "b0"), ("A", "T1", "b1"), ("A", "T2", "b2")])
+    let g8 = Selection.greeting(for: content, date: date(2026, 8, 10, calendar, hour: 8), calendar: calendar)
+    let g17 = Selection.greeting(for: content, date: date(2026, 8, 10, calendar, hour: 17), calendar: calendar)
+    check("prompt is stable across hours of one day", g8?.prompt.title == g17?.prompt.title)
 }
 
 // Only pool B entries exist, but today wants pool A — must fall back, not return nil.

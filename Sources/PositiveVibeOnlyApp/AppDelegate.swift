@@ -41,6 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let updateState = UpdateState()
     private var dragStartOrigin: NSPoint?
     private var lastCenter: NSPoint?
+    private var hourlyTimer: Timer?
+    private var autoFadeWork: DispatchWorkItem?
+    private var lastHourSlot = -1
 
     private let panelSize: CGFloat = 640
     /// Petal tips reach 300pt from centre, per spec — the rest of the 640pt
@@ -59,6 +62,59 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel = makePanel()
 
         LoginItem.applyDefaultForCurrentBundle()
+
+        // Hourly bloom. A 60s check beats a 3600s timer here: after sleep a
+        // long timer just drifts, while this notices the changed hour within
+        // a minute of waking.
+        UserDefaults.standard.register(defaults: ["HourlyBloom": true])
+        lastHourSlot = Self.currentHourSlot()
+        let timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.hourlyTick() }
+        }
+        timer.tolerance = 5
+        hourlyTimer = timer
+    }
+
+    private static func currentHourSlot(calendar: Calendar = .current) -> Int {
+        let now = Date()
+        let day = calendar.ordinality(of: .day, in: .era, for: now) ?? 0
+        return day * 24 + calendar.component(.hour, from: now)
+    }
+
+    private var hourlyBloomEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "HourlyBloom")
+    }
+
+    @objc private func toggleHourlyBloom() {
+        UserDefaults.standard.set(!hourlyBloomEnabled, forKey: "HourlyBloom")
+    }
+
+    /// On the turn of the hour: a visible card (pinned or not) refreshes in
+    /// place to the new hour's pick; a hidden card blooms on its own and
+    /// fades after 20s — unless the user pinned it, dragged it, or turned
+    /// "Bloom Every Hour" off.
+    private func hourlyTick() {
+        let slot = Self.currentHourSlot()
+        guard slot != lastHourSlot else { return }
+        lastHourSlot = slot
+        if panel.isVisible {
+            showPanel()
+        } else if hourlyBloomEnabled {
+            showPanel()
+            scheduleAutoFade()
+        }
+    }
+
+    private func scheduleAutoFade() {
+        autoFadeWork?.cancel()
+        let work = DispatchWorkItem {
+            Task { @MainActor [weak self] in
+                guard let self, !self.keepsCardOnScreen else { return }
+                self.dismissPanel()
+            }
+        }
+        autoFadeWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: work)
     }
 
     /// Borderless, transparent, non-activating: the space between petals
@@ -113,6 +169,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         surprise.target = self
         menu.addItem(surprise)
         menu.addItem(.separator())
+        let hourly = NSMenuItem(title: "Bloom Every Hour", action: #selector(toggleHourlyBloom), keyEquivalent: "")
+        hourly.target = self
+        hourly.state = hourlyBloomEnabled ? .on : .off
+        menu.addItem(hourly)
         let login = NSMenuItem(title: "Start at Login", action: #selector(toggleLoginItem), keyEquivalent: "")
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
@@ -152,6 +212,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showPanel(greeting overrideGreeting: Greeting? = nil) {
         guard let button = statusItem.button, let buttonWindow = button.window else { return }
+
+        // Any fresh show supersedes a pending auto-fade; the hourly tick
+        // re-schedules its own right after this call.
+        autoFadeWork?.cancel()
+        autoFadeWork = nil
 
         let content = try? ContentStore.load()
         let greeting = overrideGreeting ?? content.flatMap { Selection.greeting(for: $0) }
@@ -219,6 +284,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleDragChanged(_ translation: CGSize) {
         if dragStartOrigin == nil {
             dragStartOrigin = panel.frame.origin
+            // Dragging means the user wants the card where they put it —
+            // an auto-bloomed card must not fade out from under them.
+            autoFadeWork?.cancel()
+            autoFadeWork = nil
         }
         guard let start = dragStartOrigin else { return }
         // SwiftUI's y grows downward; AppKit's window origin y grows upward.
@@ -231,6 +300,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func dismissPanel() {
+        autoFadeWork?.cancel()
+        autoFadeWork = nil
         removeDismissMonitors()
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.12

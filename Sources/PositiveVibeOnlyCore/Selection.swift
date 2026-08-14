@@ -15,12 +15,15 @@ public struct Greeting {
 }
 
 public enum Selection {
-    /// Picks today's quote, compliment, prompt and flower from `content`.
+    /// Picks this hour's quote, compliment and flower, plus today's prompt,
+    /// from `content`.
     ///
-    /// Deterministic in the date: everyone on the team sees the same
-    /// greeting on the same day, no matter how many times they click the
-    /// icon. Mon/Wed/Fri draw from prompt pool A, the rest of the week from
-    /// pool B — pure function of `date` and `calendar`, no I/O.
+    /// Deterministic in the date and hour: everyone on the team sees the
+    /// same greeting in the same hour, no matter how many times they click
+    /// the icon. The prompt alone stays fixed for the whole day — it's a
+    /// day-scale invitation, not an hourly one — with Mon/Wed/Fri drawing
+    /// from pool A and the rest of the week from pool B. Pure function of
+    /// `date` and `calendar`, no I/O.
     public static func greeting(for content: Content, date: Date = Date(), calendar: Calendar = .current) -> Greeting? {
         guard !content.quotes.isEmpty, !content.compliments.isEmpty else { return nil }
 
@@ -28,6 +31,13 @@ public enum Selection {
         let year = calendar.component(.year, from: date)
         let dayIndex = year * 366 + dayOfYear
         let weekday = calendar.component(.weekday, from: date) // 1 = Sunday ... 7 = Saturday
+        let hour = calendar.component(.hour, from: date)
+
+        // Indexing pools by the raw hour slot would walk each list in file
+        // order, one entry per hour — a carousel, not a draw. Multiplying by
+        // a large odd constant (Knuth's) before the modulo keeps the pick
+        // deterministic but makes consecutive hours land somewhere fresh.
+        let scrambled = (dayIndex * 24 + hour) &* 2654435761
 
         let wantsPoolA = [2, 4, 6].contains(weekday) // Mon, Wed, Fri
         let kind = wantsPoolA ? "A" : "B"
@@ -35,10 +45,10 @@ public enum Selection {
         let fallbackPool = pool.isEmpty ? content.prompts : pool
         guard !fallbackPool.isEmpty else { return nil }
 
-        let quote = content.quotes[dayIndex % content.quotes.count]
-        let compliment = content.compliments[dayIndex % content.compliments.count]
+        let quote = content.quotes[scrambled % content.quotes.count]
+        let compliment = content.compliments[scrambled % content.compliments.count]
         let prompt = fallbackPool[dayIndex % fallbackPool.count]
-        let flower = content.flowers.isEmpty ? nil : content.flowers[dayIndex % content.flowers.count]
+        let flower = content.flowers.isEmpty ? nil : content.flowers[scrambled % content.flowers.count]
 
         return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
     }
