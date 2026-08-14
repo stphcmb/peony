@@ -105,42 +105,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let surprise = NSMenuItem(title: "Surprise Me", action: #selector(showSurpriseGreeting), keyEquivalent: "")
         surprise.target = self
         menu.addItem(surprise)
-
-        let saved = SavedQuotesStore.all()
-        if !saved.isEmpty {
-            let savedItem = NSMenuItem(title: "Saved Quotes", action: nil, keyEquivalent: "")
-            let submenu = NSMenu()
-            for quote in saved {
-                let preview = quote.text.count > 44
-                    ? "\u{201C}\(quote.text.prefix(44))…\u{201D}"
-                    : "\u{201C}\(quote.text)\u{201D}"
-                let item = NSMenuItem(title: preview, action: #selector(showSavedQuote(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = quote
-                submenu.addItem(item)
-            }
-            savedItem.submenu = submenu
-            menu.addItem(savedItem)
-        }
-
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Peony", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
-    }
-
-    /// Reopens the card with a hearted quote in place of today's — the
-    /// rest of the card (flower, compliment, prompt) stays today's.
-    @objc private func showSavedQuote(_ sender: NSMenuItem) {
-        guard let saved = sender.representedObject as? SavedQuote,
-              let content = try? ContentStore.load(),
-              let base = Selection.greeting(for: content) else { return }
-        let greeting = Greeting(
-            quote: Quote(text: saved.text, author: saved.author),
-            compliment: base.compliment, prompt: base.prompt, flower: base.flower
-        )
-        showPanel(greeting: greeting)
     }
 
     /// A random draw instead of today's deterministic pick — one-off, the
