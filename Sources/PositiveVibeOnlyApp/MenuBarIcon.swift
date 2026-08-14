@@ -1,47 +1,55 @@
 import AppKit
 
 enum MenuBarIcon {
-    /// A small colored version of the filled-peony app icon: five petal
-    /// capsules in the brand rose, meeting at a gold centre dot. Not a
-    /// template image — that would flatten it to monochrome; the color is
-    /// the point here, and the rose reads on both light and dark menu
-    /// bars. (The cost: AppKit won't dim it when inactive.)
+    /// A miniature of the 4a full-bloom app icon: three rings of translucent
+    /// rose petals over each other, gold centre dot — the same geometry and
+    /// palette as scripts/render-app-icon.swift, scaled from its 200-unit
+    /// reference frame down to an 18pt icon. Alphas are boosted from the app
+    /// icon's (0.30–0.40 there) because at menu bar size the layers composite
+    /// against the bar, not a cream tile, and the softer values muddied.
+    /// Not a template image — the layered color is the point.
     static func make() -> NSImage {
-        let petalWidth: CGFloat = 7
-        let petalHeight: CGFloat = 11
-        let offset: CGFloat = 2.6
-        let dotDiameter: CGFloat = 5
-
-        // Same rose/gold as scripts/render-app-icon.swift's middle ring
-        // and centre, so the two marks read as one identity. Near-solid
-        // alpha — translucent rose muddies to maroon on a dark menu bar.
-        let petalColor = NSColor(red: 226/255.0, green: 92/255.0, blue: 116/255.0, alpha: 0.94)
+        struct Ring {
+            let count: Int
+            let width: CGFloat
+            let height: CGFloat
+            let offset: CGFloat
+            let startDegrees: CGFloat
+            let color: NSColor
+        }
+        let rings: [Ring] = [
+            Ring(count: 7, width: 86, height: 128, offset: 30, startDegrees: 0,
+                 color: NSColor(red: 232/255.0, green: 120/255.0, blue: 140/255.0, alpha: 0.55)),
+            Ring(count: 5, width: 62, height: 84, offset: 22, startDegrees: 25,
+                 color: NSColor(red: 226/255.0, green: 92/255.0, blue: 116/255.0, alpha: 0.60)),
+            Ring(count: 3, width: 40, height: 50, offset: 14, startDegrees: 0,
+                 color: NSColor(red: 214/255.0, green: 66/255.0, blue: 96/255.0, alpha: 0.65)),
+        ]
         let dotColor = NSColor(red: 0xF6/255.0, green: 0xC7/255.0, blue: 0x7A/255.0, alpha: 1)
 
-        // The design spec's numbers (offset 6.2 + petal height 11 = 17.2pt
-        // reach from centre) were written for a CSS mockup, where unbounded
-        // overflow just renders past the nominal 18x18 box. AppKit's image
-        // context has no such grace — it clips hard at its own bounds, so a
-        // literal 18x18 canvas silently cut off most of every petal, leaving
-        // only a rounded sliver near the centre. The canvas has to actually
-        // contain the geometry it draws; sized here to the petals' real
-        // reach plus a small margin, not the reference frame's box.
-        let size = 2 * (offset + petalHeight) + 4
+        let iconSize: CGFloat = 18
+        // The outermost petals reach offset 30 + height 128 = 158 reference
+        // units from centre; scale that to the icon's radius, less a hairline
+        // margin so nothing clips.
+        let scale = (iconSize / 2 - 0.5) / 158
+        let dotDiameter: CGFloat = 26 * scale
 
-        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
-            let center = NSPoint(x: size / 2, y: size / 2)
-            petalColor.setFill()
+        let image = NSImage(size: NSSize(width: iconSize, height: iconSize), flipped: false) { _ in
+            guard let ctx = NSGraphicsContext.current?.cgContext else { return false }
+            let center = NSPoint(x: iconSize / 2, y: iconSize / 2)
 
-            for i in 0..<5 {
-                let angle = CGFloat(i) * (2 * .pi / 5)
-                let transform = NSAffineTransform()
-                transform.translateX(by: center.x, yBy: center.y)
-                transform.rotate(byRadians: angle)
-
-                let petalRect = NSRect(x: -petalWidth / 2, y: offset, width: petalWidth, height: petalHeight)
-                let path = NSBezierPath(roundedRect: petalRect, xRadius: petalWidth / 2, yRadius: petalWidth / 2)
-                path.transform(using: transform as AffineTransform)
-                path.fill()
+            for ring in rings {
+                ring.color.setFill()
+                for i in 0..<ring.count {
+                    let angle = (ring.startDegrees + CGFloat(i) * 360 / CGFloat(ring.count)) * .pi / 180
+                    ctx.saveGState()
+                    ctx.translateBy(x: center.x, y: center.y)
+                    ctx.rotate(by: angle)
+                    let w = ring.width * scale
+                    let petalRect = NSRect(x: -w / 2, y: ring.offset * scale, width: w, height: ring.height * scale)
+                    NSBezierPath(roundedRect: petalRect, xRadius: w / 2, yRadius: w / 2).fill()
+                    ctx.restoreGState()
+                }
             }
 
             dotColor.setFill()
