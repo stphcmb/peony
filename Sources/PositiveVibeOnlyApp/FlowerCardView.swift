@@ -138,9 +138,9 @@ struct CardContentView: View {
                 .help("Close")
             }
             .buttonStyle(.plain)
-            .font(.system(size: 9, weight: .semibold))
-            .foregroundColor(muted)
-            .opacity(hoveringControls ? 0.95 : 0.45)
+            .font(.system(size: 10.5, weight: .semibold))
+            .foregroundColor(secondary)
+            .opacity(hoveringControls ? 1 : 0.8)
             .animation(.easeOut(duration: 0.15), value: hoveringControls)
             .onHover { hoveringControls = $0 }
             .padding(.top, 10)
