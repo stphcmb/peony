@@ -11,12 +11,16 @@ private struct AnimatedCardView: View {
     let name: String?
     let reduceMotion: Bool
     @ObservedObject var updateState: UpdateState
+    var onRefresh: (() -> Void)? = nil
+    var onClose: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
     @State private var isVisible = false
 
     var body: some View {
-        FlowerCardView(greeting: greeting, name: name, updateState: updateState, onDragChanged: onDragChanged, onDragEnded: onDragEnded)
+        FlowerCardView(greeting: greeting, name: name, updateState: updateState,
+                       onRefresh: onRefresh, onClose: onClose,
+                       onDragChanged: onDragChanged, onDragEnded: onDragEnded)
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.94))
             .onAppear {
@@ -127,6 +131,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dragStartOrigin = nil
         let hosting = NSHostingView(rootView: AnimatedCardView(
             greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState,
+            onRefresh: { [weak self] in self?.showSurpriseGreeting() },
+            onClose: { [weak self] in self?.dismissPanel() },
             onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
             onDragEnded: { [weak self] in self?.handleDragEnded() }
         ))
@@ -134,20 +140,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.contentView = hosting
         panel.alphaValue = 1
 
-        // Anchor under the status item, matching NSPopover's default
-        // placement: horizontally centred on the button, top edge at the
-        // button's bottom. The 640pt frame is mostly transparent margin —
-        // the bloom's petal tips reach 300pt from centre, per spec. Clamped
-        // to the screen's visible frame so a status item near a screen edge
-        // (small display, external monitor) can't push most of the card
-        // off-screen.
-        let buttonFrameInScreen = buttonWindow.convertToScreen(button.frame)
-        let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrameInScreen
-        var originX = buttonFrameInScreen.midX - panelSize / 2
-        var originY = buttonFrameInScreen.minY - panelSize
-        originX = min(max(originX, screenFrame.minX), screenFrame.maxX - panelSize)
-        originY = max(originY, screenFrame.minY)
-        panel.setFrameOrigin(NSPoint(x: originX, y: originY))
+        // Refreshing in place (the card's ↺ button) must not snap a
+        // dragged card back under the status item — only anchor when the
+        // panel is actually appearing.
+        if !panel.isVisible {
+            // Anchor under the status item, matching NSPopover's default
+            // placement: horizontally centred on the button, top edge at the
+            // button's bottom. The 640pt frame is mostly transparent margin —
+            // the bloom's petal tips reach 300pt from centre, per spec. Clamped
+            // to the screen's visible frame so a status item near a screen edge
+            // (small display, external monitor) can't push most of the card
+            // off-screen.
+            let buttonFrameInScreen = buttonWindow.convertToScreen(button.frame)
+            let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrameInScreen
+            var originX = buttonFrameInScreen.midX - panelSize / 2
+            var originY = buttonFrameInScreen.minY - panelSize
+            originX = min(max(originX, screenFrame.minX), screenFrame.maxX - panelSize)
+            originY = max(originY, screenFrame.minY)
+            panel.setFrameOrigin(NSPoint(x: originX, y: originY))
+        }
 
         panel.orderFrontRegardless()
         installDismissMonitors()

@@ -10,8 +10,11 @@ struct CardContentView: View {
     let greeting: Greeting
     let name: String?
     let updateAvailable: Bool
+    var onRefresh: (() -> Void)? = nil
+    var onClose: (() -> Void)? = nil
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
+    @State private var hoveringControls = false
 
     private var colors: CardTextColors {
         BloomCatalog.textColors(for: greeting.flower?.name ?? "Daisy")
@@ -115,6 +118,33 @@ struct CardContentView: View {
                 .fill(cardFill)
                 .shadow(color: shadowColor, radius: 20, x: 0, y: 6)
         )
+        // Two quiet controls tucked into the card's top margin: refresh
+        // (a fresh random draw) and close. Kept faint until hovered so
+        // they don't compete with the greeting; the lens's top corners
+        // curve away steeply, so top-centre is the only spot they fit.
+        .overlay(alignment: .top) {
+            HStack(spacing: 18) {
+                Button { onRefresh?() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .help("Another one")
+                Button { onClose?() } label: {
+                    Image(systemName: "xmark")
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .help("Close")
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 9, weight: .semibold))
+            .foregroundColor(muted)
+            .opacity(hoveringControls ? 0.95 : 0.45)
+            .animation(.easeOut(duration: 0.15), value: hoveringControls)
+            .onHover { hoveringControls = $0 }
+            .padding(.top, 10)
+        }
     }
 
     /// "v1.0.3 · updated Aug 14, 2026". Version comes from the bundle the
@@ -141,6 +171,8 @@ struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
     @ObservedObject var updateState: UpdateState
+    var onRefresh: (() -> Void)? = nil
+    var onClose: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
 
@@ -150,7 +182,8 @@ struct FlowerCardView: View {
                 BloomView(spec: BloomCatalog.spec(for: flower.name))
             }
             if let greeting {
-                CardContentView(greeting: greeting, name: name, updateAvailable: updateState.isAvailable)
+                CardContentView(greeting: greeting, name: name, updateAvailable: updateState.isAvailable,
+                                onRefresh: onRefresh, onClose: onClose)
             } else {
                 Text("Could not load today's content.")
                     .font(.custom("Karla", size: 13))
