@@ -5,6 +5,13 @@ public struct Greeting {
     public let compliment: String
     public let prompt: PromptItem
     public let flower: Flower?
+
+    public init(quote: Quote, compliment: String, prompt: PromptItem, flower: Flower?) {
+        self.quote = quote
+        self.compliment = compliment
+        self.prompt = prompt
+        self.flower = flower
+    }
 }
 
 public enum Selection {

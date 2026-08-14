@@ -17,6 +17,7 @@ struct CardContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
     @State private var hoveringControls = false
+    @State private var quoteSaved = false
 
     private var colors: CardTextColors {
         BloomCatalog.textColors(for: greeting.flower?.name ?? "Daisy")
@@ -98,6 +99,23 @@ struct CardContentView: View {
                         .lineSpacing(3.5)
                     capsText(greeting.quote.author)
                         .foregroundColor(muted)
+                    // Heart a quote to keep it — revisit via the menu bar
+                    // icon's right-click menu, "Saved Quotes".
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            quoteSaved = SavedQuotesStore.toggle(greeting.quote)
+                        }
+                    } label: {
+                        Image(systemName: quoteSaved ? "heart.fill" : "heart")
+                            .font(.system(size: 11))
+                            .foregroundColor(secondary.opacity(quoteSaved ? 1 : 0.65))
+                            .scaleEffect(quoteSaved ? 1.15 : 1)
+                            .frame(width: 20, height: 16)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(quoteSaved ? "Remove from saved" : "Save this quote")
+                    .padding(.top, 1)
                 }
 
                 Text(greeting.compliment)
@@ -143,6 +161,7 @@ struct CardContentView: View {
         }
         .frame(width: 258)
         .fixedSize(horizontal: false, vertical: true)
+        .onAppear { quoteSaved = SavedQuotesStore.isSaved(text: greeting.quote.text) }
         .clipShape(arch)
         .background(
             arch
