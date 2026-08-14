@@ -1,14 +1,14 @@
 #!/bin/bash
-# Removes Flowers from login items and /Applications.
+# Removes Peony from login items and /Applications.
 
 set -uo pipefail
 
-LABEL="com.positivevibeonly.flowers.login"
+LABEL="com.positivevibeonly.peony.login"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 
-pkill -x Flowers 2>/dev/null || true
+pkill -x Peony 2>/dev/null || true
 launchctl unload "$PLIST" 2>/dev/null || true
 rm -f "$PLIST"
-rm -rf "/Applications/Flowers.app"
+rm -rf "/Applications/Peony.app"
 
 echo "Removed."

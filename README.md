@@ -1,4 +1,4 @@
-# Flowers
+# Peony
 
 A menu bar app that gives you a new flower, a quote, a compliment, and one
 small thing to sit with — every day. Click the icon, read for ten seconds,
@@ -12,8 +12,8 @@ shape and colour.
 ## Install
 
 ```bash
-git clone https://github.com/stphcmb/flowers.git
-cd flowers
+git clone https://github.com/stphcmb/peony.git
+cd peony
 ./install.sh
 ```
 
@@ -31,8 +31,8 @@ To remove it:
 
 ### Just want to try it without cloning?
 
-Grab `Flowers.zip` from this repo's [Releases](../../releases) page, unzip,
-drag `Flowers.app` to Applications, then **right-click → Open** the first
+Grab `Peony.zip` from this repo's [Releases](../../releases) page, unzip,
+drag `Peony.app` to Applications, then **right-click → Open** the first
 time (macOS warns because it isn't signed with a paid Apple Developer
 account — that's expected, and only happens once).
 
@@ -54,7 +54,7 @@ Everything text-based lives in one file:
 `compliments`, `prompts`, `flowers`. Add an entry to any list, then rebuild:
 
 ```bash
-./scripts/build-app.sh   # rebuilds dist/Flowers.app
+./scripts/build-app.sh   # rebuilds dist/Peony.app
 ./install.sh             # reinstalls it and restarts the login item
 ```
 
@@ -96,15 +96,15 @@ create`, same as any release.
 ## If something looks wrong
 
 ```bash
-launchctl list | grep flowers   # is the login item registered?
-open -a Flowers                 # launch it by hand
+launchctl list | grep peony   # is the login item registered?
+open -a Peony                 # launch it by hand
 ```
 
 ## Rebuilding from source
 
 ```bash
 swift run CoreTests             # runs the logic checks (day → greeting rules)
-./scripts/build-app.sh          # builds dist/Flowers.app
+./scripts/build-app.sh          # builds dist/Peony.app
 ```
 
 No XCTest here — Command Line Tools alone doesn't ship it, and pulling in

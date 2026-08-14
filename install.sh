@@ -1,17 +1,24 @@
 #!/bin/bash
-# Builds Flowers.app (if needed), installs it to /Applications, and sets it
+# Builds Peony.app (if needed), installs it to /Applications, and sets it
 # to start at login. No Xcode, no Apple Developer account, no App Store.
 
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_SRC="$DIR/dist/Flowers.app"
-APP_DEST="/Applications/Flowers.app"
-LABEL="com.positivevibeonly.flowers.login"
+APP_SRC="$DIR/dist/Peony.app"
+APP_DEST="/Applications/Peony.app"
+LABEL="com.positivevibeonly.peony.login"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 
+# One-time migration: remove the app under its old name (Flowers) so two
+# copies don't both run at login.
+pkill -x Flowers 2>/dev/null || true
+launchctl unload "$HOME/Library/LaunchAgents/com.positivevibeonly.flowers.login.plist" 2>/dev/null || true
+rm -f "$HOME/Library/LaunchAgents/com.positivevibeonly.flowers.login.plist"
+rm -rf "/Applications/Flowers.app"
+
 if [ ! -d "$APP_SRC" ]; then
-  echo "Building Flowers.app..."
+  echo "Building Peony.app..."
   "$DIR/scripts/build-app.sh"
 fi
 

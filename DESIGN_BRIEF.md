@@ -1,4 +1,4 @@
-# Flowers — design brief
+# Peony — design brief
 
 ## What it is
 

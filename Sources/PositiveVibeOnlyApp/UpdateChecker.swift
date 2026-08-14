@@ -14,7 +14,7 @@ final class UpdateState: ObservableObject {
 /// the app's only network call — it fetches nothing but a version tag, and
 /// only when the popover is about to open, never in the background.
 enum UpdateChecker {
-    private static let repo = "stphcmb/flowers"
+    private static let repo = "stphcmb/peony"
     static let releasesPageURL = URL(string: "https://github.com/\(repo)/releases/latest")!
     private static let apiURL = URL(string: "https://api.github.com/repos/\(repo)/releases/latest")!
 

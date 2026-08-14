@@ -1,8 +1,8 @@
 #!/bin/bash
-# Builds Flowers.app from the Swift package. No Xcode required.
+# Builds Peony.app from the Swift package. No Xcode required.
 #
 # (The Swift target is still named PositiveVibeOnlyApp internally — that's
-# plumbing, renaming it buys nothing user-facing. Flowers is the product name:
+# plumbing, renaming it buys nothing user-facing. Peony is the product name:
 # the .app filename, the bundle identifier, the menu bar tooltip.)
 
 set -euo pipefail
@@ -17,12 +17,12 @@ cd "$DIR"
 echo "Building..."
 swift build -c release
 
-APP="$DIR/dist/Flowers.app"
+APP="$DIR/dist/Peony.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 BIN_DIR="$(swift build -c release --show-bin-path)"
-cp "$BIN_DIR/PositiveVibeOnlyApp" "$APP/Contents/MacOS/Flowers"
+cp "$BIN_DIR/PositiveVibeOnlyApp" "$APP/Contents/MacOS/Peony"
 
 # Standard macOS bundle layout: resources live in Contents/Resources, which
 # codesign seals correctly. (ContentStore.load() checks this path first, and
@@ -49,15 +49,15 @@ cat > "$APP/Contents/Info.plist" <<PLIST_EOF
 <plist version="1.0">
 <dict>
   <key>CFBundleName</key>
-  <string>Flowers</string>
+  <string>Peony</string>
   <key>CFBundleIdentifier</key>
-  <string>com.positivevibeonly.flowers</string>
+  <string>com.positivevibeonly.peony</string>
   <key>CFBundleVersion</key>
   <string>$VERSION</string>
   <key>CFBundleShortVersionString</key>
   <string>$VERSION</string>
   <key>CFBundleExecutable</key>
-  <string>Flowers</string>
+  <string>Peony</string>
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundlePackageType</key>
