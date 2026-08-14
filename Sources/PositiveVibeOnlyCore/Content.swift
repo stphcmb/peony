@@ -30,10 +30,14 @@ public struct PromptItem: Decodable {
 public struct Flower: Decodable {
     public let name: String
     public let meaning: String
+    /// Vietnamese name, shown as a small annotation next to `name`.
+    /// Optional so content.json entries without one keep decoding.
+    public let nameVi: String?
 
-    public init(name: String, meaning: String) {
+    public init(name: String, meaning: String, nameVi: String? = nil) {
         self.name = name
         self.meaning = meaning
+        self.nameVi = nameVi
     }
 }
 

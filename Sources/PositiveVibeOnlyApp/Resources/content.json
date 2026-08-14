@@ -279,123 +279,153 @@
   "flowers": [
     {
       "name": "Sunflower",
-      "meaning": "Faces the light on purpose. A steady kind of optimism."
+      "meaning": "Faces the light on purpose. A steady kind of optimism.",
+      "nameVi": "Hoa hướng dương"
     },
     {
       "name": "Cherry Blossom",
-      "meaning": "Blooms fast, falls fast, and is loved precisely because it doesn't last."
+      "meaning": "Blooms fast, falls fast, and is loved precisely because it doesn't last.",
+      "nameVi": "Hoa anh đào"
     },
     {
       "name": "Lotus",
-      "meaning": "Grows up clean through muddy water. Nothing about its start shows in the flower."
+      "meaning": "Grows up clean through muddy water. Nothing about its start shows in the flower.",
+      "nameVi": "Hoa sen"
     },
     {
       "name": "Lavender",
-      "meaning": "Calm that you can smell. Also famously hard to kill."
+      "meaning": "Calm that you can smell. Also famously hard to kill.",
+      "nameVi": "Oải hương"
     },
     {
       "name": "Peony",
-      "meaning": "Full, a little too much, and unapologetic about it."
+      "meaning": "Full, a little too much, and unapologetic about it.",
+      "nameVi": "Mẫu đơn"
     },
     {
       "name": "Daisy",
-      "meaning": "Small and plain-looking, and somehow the flower everyone trusts."
+      "meaning": "Small and plain-looking, and somehow the flower everyone trusts.",
+      "nameVi": "Cúc họa mi"
     },
     {
       "name": "Orchid",
-      "meaning": "Takes years to bloom. Worth the wait every time."
+      "meaning": "Takes years to bloom. Worth the wait every time.",
+      "nameVi": "Hoa lan"
     },
     {
       "name": "Tulip",
-      "meaning": "Arrives in a crowd of identical stems and still stands out."
+      "meaning": "Arrives in a crowd of identical stems and still stands out.",
+      "nameVi": "Hoa tulip"
     },
     {
       "name": "Iris",
-      "meaning": "Named for the messenger of the gods. Built to be noticed."
+      "meaning": "Named for the messenger of the gods. Built to be noticed.",
+      "nameVi": "Hoa diên vĩ"
     },
     {
       "name": "Chrysanthemum",
-      "meaning": "Blooms latest in the year, when most things have already given up."
+      "meaning": "Blooms latest in the year, when most things have already given up.",
+      "nameVi": "Hoa cúc"
     },
     {
       "name": "Marigold",
-      "meaning": "Thrives in poor soil. Toughness that looks like cheerfulness."
+      "meaning": "Thrives in poor soil. Toughness that looks like cheerfulness.",
+      "nameVi": "Cúc vạn thọ"
     },
     {
       "name": "Poppy",
-      "meaning": "Grows wild in disturbed ground. The flower that shows up after things get hard."
+      "meaning": "Grows wild in disturbed ground. The flower that shows up after things get hard.",
+      "nameVi": "Hoa anh túc"
     },
     {
       "name": "Camellia",
-      "meaning": "Flowers in winter, which is the whole point of it."
+      "meaning": "Flowers in winter, which is the whole point of it.",
+      "nameVi": "Hoa trà"
     },
     {
       "name": "Jasmine",
-      "meaning": "Opens at night and gives its best scent when no one is watching."
+      "meaning": "Opens at night and gives its best scent when no one is watching.",
+      "nameVi": "Hoa nhài"
     },
     {
       "name": "Hydrangea",
-      "meaning": "Changes color with the soil under it. Shaped by where it's planted, not less itself for it."
+      "meaning": "Changes color with the soil under it. Shaped by where it's planted, not less itself for it.",
+      "nameVi": "Cẩm tú cầu"
     },
     {
       "name": "Wisteria",
-      "meaning": "Climbs slowly for years before the display everyone remembers."
+      "meaning": "Climbs slowly for years before the display everyone remembers.",
+      "nameVi": "Hoa tử đằng"
     },
     {
       "name": "Magnolia",
-      "meaning": "One of the oldest flowering plants alive. Dignity that predates the bees."
+      "meaning": "One of the oldest flowering plants alive. Dignity that predates the bees.",
+      "nameVi": "Mộc lan"
     },
     {
       "name": "Freesia",
-      "meaning": "Small flower, disproportionately good smell. Punches above its size."
+      "meaning": "Small flower, disproportionately good smell. Punches above its size.",
+      "nameVi": "Hoa freesia"
     },
     {
       "name": "Anemone",
-      "meaning": "Named for the wind. Moves easily without breaking."
+      "meaning": "Named for the wind. Moves easily without breaking.",
+      "nameVi": "Cỏ chân ngỗng"
     },
     {
       "name": "Ranunculus",
-      "meaning": "Looks hand-folded, petal by petal. Patience made visible."
+      "meaning": "Looks hand-folded, petal by petal. Patience made visible.",
+      "nameVi": "Hoa mao lương"
     },
     {
       "name": "Gerbera",
-      "meaning": "Plain shape, loud color. Doesn't overthink it."
+      "meaning": "Plain shape, loud color. Doesn't overthink it.",
+      "nameVi": "Hoa đồng tiền"
     },
     {
       "name": "Snapdragon",
-      "meaning": "Squeeze the bloom and it opens like a mouth. Playful, a little unexpected."
+      "meaning": "Squeeze the bloom and it opens like a mouth. Playful, a little unexpected.",
+      "nameVi": "Hoa mõm sói"
     },
     {
       "name": "Zinnia",
-      "meaning": "Bred to be nearly impossible to kill in the heat. Reliable by design."
+      "meaning": "Bred to be nearly impossible to kill in the heat. Reliable by design.",
+      "nameVi": "Cúc ngũ sắc"
     },
     {
       "name": "Carnation",
-      "meaning": "Ruffled and long-lasting. The flower that outstays the bouquet."
+      "meaning": "Ruffled and long-lasting. The flower that outstays the bouquet.",
+      "nameVi": "Hoa cẩm chướng"
     },
     {
       "name": "Bluebell",
-      "meaning": "Carpets a whole forest floor for two weeks a year, then waits eleven months."
+      "meaning": "Carpets a whole forest floor for two weeks a year, then waits eleven months.",
+      "nameVi": "Hoa chuông xanh"
     },
     {
       "name": "Hibiscus",
-      "meaning": "Lasts one day, fully open. Some things are worth doing all the way even if briefly."
+      "meaning": "Lasts one day, fully open. Some things are worth doing all the way even if briefly.",
+      "nameVi": "Hoa dâm bụt"
     },
     {
       "name": "Forget-Me-Not",
-      "meaning": "Named for exactly what it asks of you."
+      "meaning": "Named for exactly what it asks of you.",
+      "nameVi": "Hoa lưu ly"
     },
     {
       "name": "Amaryllis",
-      "meaning": "Grows from a bulb with nothing visible, then suddenly a foot of bloom."
+      "meaning": "Grows from a bulb with nothing visible, then suddenly a foot of bloom.",
+      "nameVi": "Hoa lan huệ"
     },
     {
       "name": "Dahlia",
-      "meaning": "Petals in perfect spirals. Structure and softness at once."
+      "meaning": "Petals in perfect spirals. Structure and softness at once.",
+      "nameVi": "Thược dược"
     },
     {
       "name": "Protea",
-      "meaning": "Survives wildfire; some species need fire to seed. Built for the hard reset."
+      "meaning": "Survives wildfire; some species need fire to seed. Built for the hard reset.",
+      "nameVi": "Hoa protea"
     }
   ]
 }

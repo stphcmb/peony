@@ -51,10 +51,17 @@ struct CardContentView: View {
 
             if let flower = greeting.flower {
                 VStack(spacing: 6) {
-                    Text(flower.name)
+                    // One concatenated Text so the Vietnamese annotation
+                    // wraps together with the name instead of on its own line.
+                    (Text(flower.name)
                         .font(.custom("Fraunces", size: 28))
                         .tracking(-0.4)
                         .foregroundColor(primary)
+                     + Text(flower.nameVi.map { " (\($0))" } ?? "")
+                        .font(.custom("Fraunces", size: 13))
+                        .italic()
+                        .foregroundColor(secondary))
+                        .multilineTextAlignment(.center)
                     Text(flower.meaning)
                         .font(.custom("Karla", size: 13.5))
                         .foregroundColor(secondary)
