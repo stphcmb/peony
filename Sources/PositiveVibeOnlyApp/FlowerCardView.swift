@@ -26,9 +26,11 @@ struct CardContentView: View {
     private var secondary: Color { Color(hex: isDark ? colors.darkSecondary : colors.lightSecondary) }
     private var muted: Color { Color(hex: isDark ? colors.darkMuted : colors.lightMuted) }
     private var cardFill: Color { Color(hex: isDark ? "#241A12" : "#FFFDFA") }
+    // Strong enough to read as a solid pastel section against the cream
+    // body, like the 6a mock — 0.15 washed out to near-invisible.
     private var headerTint: Color {
         let hex = BloomCatalog.spec(for: greeting.flower?.name ?? "Daisy").outerColorHex
-        return Color(hex: hex).opacity(isDark ? 0.26 : 0.15)
+        return Color(hex: hex).opacity(isDark ? 0.38 : 0.30)
     }
 
     private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
@@ -36,8 +38,9 @@ struct CardContentView: View {
     /// Small-caps section label, the mock's letterspaced style.
     private func capsText(_ s: String) -> Text {
         Text(s.uppercased())
-            .font(.custom("Karla", size: 10))
-            .tracking(1.6)
+            .font(.custom("Karla", size: 9.5))
+            .fontWeight(.medium)
+            .tracking(2.2)
     }
 
     private var headerDateLine: String {
@@ -59,8 +62,8 @@ struct CardContentView: View {
                     // stays glued to the name; single line, scaling down
                     // rather than wrapping.
                     (Text(flower.name)
-                        .font(.custom("Fraunces", size: 27))
-                        .tracking(-0.4)
+                        .font(.custom("Fraunces", size: 30))
+                        .tracking(-0.5)
                         .foregroundColor(primary)
                      + Text(flower.nameVi.map { " (\($0))" } ?? "")
                         .font(.custom("Fraunces", size: 13))
@@ -70,10 +73,11 @@ struct CardContentView: View {
                         .minimumScaleFactor(0.55)
                         .allowsTightening(true)
                     Text(flower.meaning)
-                        .font(.custom("Fraunces", size: 13))
+                        .font(.custom("Fraunces", size: 13.5))
                         .italic()
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(2.5)
                 }
             }
             .padding(.top, 46)
@@ -86,19 +90,22 @@ struct CardContentView: View {
             VStack(spacing: 17) {
                 VStack(spacing: 5) {
                     Text("\u{201C}\(greeting.quote.text)\u{201D}")
-                        .font(.custom("Fraunces", size: 17))
+                        .font(.custom("Fraunces", size: 18))
                         .italic()
                         .fontWeight(.light)
                         .foregroundColor(primary)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(3.5)
                     capsText(greeting.quote.author)
                         .foregroundColor(muted)
                 }
 
                 Text(greeting.compliment)
                     .font(.custom("Karla", size: 13.5))
+                    .tracking(0.2)
                     .foregroundColor(primary)
                     .multilineTextAlignment(.center)
+                    .lineSpacing(2.5)
 
                 VStack(spacing: 5) {
                     capsText("Today")
@@ -108,10 +115,12 @@ struct CardContentView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(primary)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(2.5)
                     Text(greeting.prompt.body)
                         .font(.custom("Karla", size: 12.5))
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
+                        .lineSpacing(2.5)
                 }
 
                 if updateAvailable {
@@ -125,9 +134,8 @@ struct CardContentView: View {
                     .buttonStyle(.plain)
                 }
 
-                Text(versionLine)
-                    .font(.custom("Karla", size: 10))
-                    .foregroundColor(muted.opacity(0.75))
+                capsText(versionLine)
+                    .foregroundColor(muted.opacity(0.6))
             }
             .padding(.top, 22)
             .padding(.horizontal, 28)
