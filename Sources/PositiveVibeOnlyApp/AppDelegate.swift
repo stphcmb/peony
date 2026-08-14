@@ -41,9 +41,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = MenuBarIcon.make()
-        item.button?.toolTip = "Flowers"
+        item.button?.toolTip = "Peony"
         item.button?.target = self
-        item.button?.action = #selector(togglePanel)
+        item.button?.action = #selector(statusItemClicked)
+        item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         statusItem = item
 
         panel = makePanel()
@@ -71,7 +72,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return p
     }
 
-    @objc private func togglePanel() {
+    @objc private func statusItemClicked() {
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            showMenu()
+        } else {
+            togglePanel()
+        }
+    }
+
+    private func togglePanel() {
         if panel.isVisible {
             dismissPanel()
         } else {
@@ -79,11 +88,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func showPanel() {
+    /// Right-click menu. Built fresh per click and assigned to the status
+    /// item only for the duration of `performClick` — a permanently
+    /// assigned `statusItem.menu` would swallow left clicks too, and the
+    /// card (not a menu) is the left click's job.
+    private func showMenu() {
+        if panel.isVisible {
+            removeDismissMonitors()
+            panel.orderOut(nil)
+        }
+        let menu = NSMenu()
+        let surprise = NSMenuItem(title: "Surprise Me", action: #selector(showSurpriseGreeting), keyEquivalent: "")
+        surprise.target = self
+        menu.addItem(surprise)
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Quit Peony", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        statusItem.menu = menu
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
+    }
+
+    /// A random draw instead of today's deterministic pick — one-off, the
+    /// next plain click shows today's card again.
+    @objc private func showSurpriseGreeting() {
+        let greeting = (try? ContentStore.load()).flatMap { Selection.randomGreeting(for: $0) }
+        showPanel(greeting: greeting)
+    }
+
+    private func showPanel(greeting overrideGreeting: Greeting? = nil) {
         guard let button = statusItem.button, let buttonWindow = button.window else { return }
 
         let content = try? ContentStore.load()
-        let greeting = content.flatMap { Selection.greeting(for: $0) }
+        let greeting = overrideGreeting ?? content.flatMap { Selection.greeting(for: $0) }
         let name = NSFullUserName().components(separatedBy: " ").first
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }
@@ -149,6 +185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func installDismissMonitors() {
+        removeDismissMonitors() // re-showing an already-visible panel must not stack monitors
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             self?.dismissPanel()
         }

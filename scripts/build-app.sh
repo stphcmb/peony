@@ -9,7 +9,7 @@ set -euo pipefail
 
 # Bump this to match the git tag before cutting a release — the update
 # nudge (UpdateChecker.swift) compares this against GitHub's latest tag.
-VERSION="1.0.3"
+VERSION="1.1.0"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR"
@@ -58,6 +58,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST_EOF
   <string>$VERSION</string>
   <key>CFBundleExecutable</key>
   <string>Peony</string>
+  <key>PeonyBuildDate</key>
+  <string>$(date "+%b %-d, %Y")</string>
   <key>CFBundleIconFile</key>
   <string>AppIcon</string>
   <key>CFBundlePackageType</key>

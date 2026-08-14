@@ -100,6 +100,10 @@ struct CardContentView: View {
                 }
                 .buttonStyle(.plain)
             }
+
+            Text(versionLine)
+                .font(.custom("Karla", size: 10))
+                .foregroundColor(muted.opacity(0.75))
         }
         .padding(.top, 34)
         .padding(.horizontal, 30)
@@ -111,6 +115,18 @@ struct CardContentView: View {
                 .fill(cardFill)
                 .shadow(color: shadowColor, radius: 20, x: 0, y: 6)
         )
+    }
+
+    /// "v1.0.3 · updated Aug 14, 2026". Version comes from the bundle the
+    /// app is actually running from; the date is stamped into Info.plist by
+    /// build-app.sh. Under `swift run` (no bundle plist) it shows "dev".
+    private var versionLine: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "dev"
+        if let built = info?["PeonyBuildDate"] as? String {
+            return "v\(version) · updated \(built)"
+        }
+        return "v\(version)"
     }
 
     private var shadowColor: Color {

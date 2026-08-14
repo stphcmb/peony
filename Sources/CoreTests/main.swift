@@ -123,6 +123,14 @@ do {
     check("every shipped flower name has its own bloom spec", allCovered)
 }
 
+// Random greeting for the "Surprise Me" menu action.
+do {
+    let content = makeContent(prompts: [("A", "T", "tb"), ("B", "W", "wb")])
+    check("random greeting draws from non-empty content", Selection.randomGreeting(for: content) != nil)
+    let empty = Content(version: 1, quotes: [], compliments: ["c0"], prompts: [PromptItem(kind: "A", title: "T", body: "b")], flowers: [])
+    check("random greeting with no quotes returns nil", Selection.randomGreeting(for: empty) == nil)
+}
+
 // Version comparison for the update-available nudge.
 check("v-prefixed patch bump is newer", VersionCheck.isNewer(latestTag: "v1.0.2", currentVersion: "1.0.1"))
 check("same version is not newer", !VersionCheck.isNewer(latestTag: "v1.0.1", currentVersion: "1.0.1"))

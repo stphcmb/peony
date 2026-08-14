@@ -35,4 +35,14 @@ public enum Selection {
 
         return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
     }
+
+    /// A one-off random greeting, for the "Surprise Me" menu action. Draws
+    /// from every prompt pool (no weekday rule) and doesn't affect the
+    /// deterministic daily pick above.
+    public static func randomGreeting(for content: Content) -> Greeting? {
+        guard let quote = content.quotes.randomElement(),
+              let compliment = content.compliments.randomElement(),
+              let prompt = content.prompts.randomElement() else { return nil }
+        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: content.flowers.randomElement())
+    }
 }
