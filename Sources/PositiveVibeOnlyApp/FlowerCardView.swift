@@ -61,7 +61,11 @@ struct CardContentView: View {
                         .font(.custom("Fraunces", size: 13))
                         .italic()
                         .foregroundColor(secondary))
-                        .multilineTextAlignment(.center)
+                        // Always a single line: long pairs ("Chrysanthemum
+                        // (Hoa cúc)") scale down instead of wrapping.
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.55)
+                        .allowsTightening(true)
                     Text(flower.meaning)
                         .font(.custom("Karla", size: 13.5))
                         .foregroundColor(secondary)
