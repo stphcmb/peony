@@ -1,8 +1,8 @@
 # Peony
 
-A menu bar app that gives you a new flower, a quote, a compliment, and one
-small thing to sit with — every day. Click the icon, read for ten seconds,
-get on with your day.
+A menu bar app that gives you a new flower, a quote, a short encouragement,
+and one small thing to sit with — every day. Click the icon, read for ten
+seconds, get on with your day.
 
 The card isn't a rectangle. It's cut in the shape of the day's bloom —
 petals around a soft centre, like a sticker someone left on your desk. A
@@ -20,8 +20,11 @@ cd peony
 That builds the app, copies it to `/Applications`, and sets it to start next
 time you log in. No Xcode, no Apple Developer account, no App Store.
 
-The icon lives in your menu bar — a small five-petal outline. Click it
-whenever you want today's flower.
+The icon lives in your menu bar — a small pink bloom. Click it whenever
+you want today's flower. Right-click for the menu: **Surprise Me** (a
+one-off random draw) and **Quit**. On the card itself, ↺ draws another
+surprise, × closes it, and you can drag it anywhere on screen. Flower
+names come with their Vietnamese name alongside.
 
 To remove it:
 
@@ -41,7 +44,8 @@ account — that's expected, and only happens once).
 Everything is picked from today's date, not randomly — so it's the same for
 everyone on the team on any given day. That's on purpose: it gives you
 something to compare notes on ("did you see today's flower") instead of
-everyone getting a different private feed.
+everyone getting a different private feed. (Surprise Me is the escape
+hatch: a random draw that doesn't touch the daily pick.)
 
 The fourth block — the prompt — alternates by day of the week between two
 pools, each mixing three kinds of invitation: a question worth sitting with,
@@ -51,7 +55,9 @@ a specific act of kindness, or a nudge toward rest.
 
 Everything text-based lives in one file:
 `Sources/PositiveVibeOnlyApp/Resources/content.json` — `quotes`,
-`compliments`, `prompts`, `flowers`. Add an entry to any list, then rebuild:
+`compliments`, `prompts`, `flowers` — currently 100 quotes, 30
+encouragements, 24 prompts, and 30 flowers (each with a `nameVi`
+Vietnamese name). Add an entry to any list, then rebuild:
 
 ```bash
 ./scripts/build-app.sh   # rebuilds dist/Peony.app
