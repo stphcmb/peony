@@ -47,9 +47,23 @@ To remove it:
 3. Open it. The first launch is where macOS may push back — see below.
 4. Look for the small pink bloom in your menu bar. That's it.
 
-Either route starts the app at login from its first launch onwards — the app
-registers itself, so it shows up in System Settings > General > Login Items.
-The `./install.sh` route additionally skips the security warning entirely.
+### Installing with Homebrew
+
+```bash
+brew install --cask stphcmb/peony/peony
+```
+
+Homebrew keeps macOS's quarantine flag on, so the first launch still needs
+the one-time "Open Anyway" step below. To skip that entirely, install with:
+
+```bash
+brew install --cask --no-quarantine stphcmb/peony/peony
+```
+
+Whichever route you take, the app starts at login from its first launch
+onwards — it registers itself, so it shows up in System Settings > General >
+Login Items. The `./install.sh` route additionally skips the security
+warning entirely.
 
 ### "Apple could not verify this app" — how to open it anyway
 
@@ -144,7 +158,10 @@ to grant.
 **Shipping a new release.** Bump `VERSION` at the top of
 `scripts/build-app.sh` to match the git tag you're about to push — that's
 what the update check compares against. Build, zip, tag, `gh release
-create`, same as any release.
+create`, same as any release. Then update the Homebrew tap
+([stphcmb/homebrew-peony](https://github.com/stphcmb/homebrew-peony)):
+set `version` and `sha256` in `Casks/peony.rb` to the new release
+(`shasum -a 256 Peony.zip` for the hash) and push.
 
 ## If something looks wrong
 
