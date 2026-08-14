@@ -39,8 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var keyMonitor: Any?
     private let updateState = UpdateState()
     private var dragStartOrigin: NSPoint?
+    private var lastCenter: NSPoint?
 
     private let panelSize: CGFloat = 640
+    /// Petal tips reach 300pt from centre, per spec — the rest of the 640pt
+    /// frame is transparent margin, so only this much has to stay on screen.
+    private let bloomRadius: CGFloat = 300
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -52,6 +56,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
 
         panel = makePanel()
+
+        LoginItem.applyDefaultForCurrentBundle()
     }
 
     /// Borderless, transparent, non-activating: the space between petals
@@ -106,10 +112,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         surprise.target = self
         menu.addItem(surprise)
         menu.addItem(.separator())
+        let login = NSMenuItem(title: "Start at Login", action: #selector(toggleLoginItem), keyEquivalent: "")
+        login.target = self
+        login.state = LoginItem.isEnabled ? .on : .off
+        menu.addItem(login)
+        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Peony", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
+    }
+
+    @objc private func toggleLoginItem() {
+        LoginItem.setEnabled(!LoginItem.isEnabled)
     }
 
     /// A random draw instead of today's deterministic pick — one-off, the
@@ -144,24 +159,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // dragged card back under the status item — only anchor when the
         // panel is actually appearing.
         if !panel.isVisible {
-            // Anchor under the status item, matching NSPopover's default
-            // placement: horizontally centred on the button, top edge at the
-            // button's bottom. The 640pt frame is mostly transparent margin —
-            // the bloom's petal tips reach 300pt from centre, per spec. Clamped
-            // to the screen's visible frame so a status item near a screen edge
-            // (small display, external monitor) can't push most of the card
-            // off-screen.
-            let buttonFrameInScreen = buttonWindow.convertToScreen(button.frame)
-            let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? buttonFrameInScreen
-            var originX = buttonFrameInScreen.midX - panelSize / 2
-            var originY = buttonFrameInScreen.minY - panelSize
-            originX = min(max(originX, screenFrame.minX), screenFrame.maxX - panelSize)
-            originY = max(originY, screenFrame.minY)
-            panel.setFrameOrigin(NSPoint(x: originX, y: originY))
+            panel.setFrameOrigin(randomOrigin(on: buttonWindow.screen))
         }
 
         panel.orderFrontRegardless()
         installDismissMonitors()
+    }
+
+    /// The bloom lands somewhere different every time it opens — it's a small
+    /// surprise, not a menu, so it doesn't anchor under the status item. The
+    /// draw is over bloom *centres* inside the screen's visible frame (which
+    /// already excludes the menu bar and Dock), inset by the bloom radius so
+    /// no petal falls off an edge. A draw too close to the previous one is
+    /// redrawn — pure uniform picks cluster often enough to read as "stuck".
+    private func randomOrigin(on screen: NSScreen?) -> NSPoint {
+        let frame = (screen ?? NSScreen.main)?.visibleFrame
+            ?? NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
+        let inset = bloomRadius + 12
+        let xRange = (frame.minX + inset)...(max(frame.maxX - inset, frame.minX + inset))
+        let yRange = (frame.minY + inset)...(max(frame.maxY - inset, frame.minY + inset))
+        // A screen too small to move around in leaves both ranges empty —
+        // then every draw is the same centred point, which is the right answer.
+        let minMove = min(frame.width, frame.height) / 4
+
+        var center = NSPoint(x: .random(in: xRange), y: .random(in: yRange))
+        for _ in 0..<8 {
+            guard let last = lastCenter else { break }
+            if hypot(center.x - last.x, center.y - last.y) >= minMove { break }
+            center = NSPoint(x: .random(in: xRange), y: .random(in: yRange))
+        }
+        lastCenter = center
+        return NSPoint(x: center.x - panelSize / 2, y: center.y - panelSize / 2)
     }
 
     /// Drives dragging manually instead of `isMovableByWindowBackground`,

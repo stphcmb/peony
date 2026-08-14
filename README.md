@@ -21,10 +21,12 @@ That builds the app, copies it to `/Applications`, and sets it to start next
 time you log in. No Xcode, no Apple Developer account, no App Store.
 
 The icon lives in your menu bar — a small pink bloom. Click it whenever
-you want today's flower. Right-click for the menu: **Surprise Me** (a
-one-off random draw) and **Quit**. On the card itself, ↺ draws another
-surprise, × closes it, and you can drag it anywhere on screen. Flower
-names come with their Vietnamese name alongside.
+you want today's flower; it opens somewhere different on screen each time.
+Right-click for the menu: **Surprise Me** (a one-off random draw),
+**Start at Login** (on by default, toggle it off any time) and **Quit**.
+On the card itself, ↺ draws another surprise, × closes it, and you can drag
+it anywhere on screen. Flower names come with their Vietnamese name
+alongside.
 
 To remove it:
 
@@ -40,9 +42,9 @@ To remove it:
 3. Open it. The first launch is where macOS may push back — see below.
 4. Look for the small pink bloom in your menu bar. That's it.
 
-The zip route doesn't set the app to start at login — reopen it after a
-restart, or use the `./install.sh` route above, which handles login and
-skips the security warning entirely.
+Either route starts the app at login from its first launch onwards — the app
+registers itself, so it shows up in System Settings > General > Login Items.
+The `./install.sh` route additionally skips the security warning entirely.
 
 ### "Apple could not verify this app" — how to open it anyway
 
@@ -98,7 +100,7 @@ Vietnamese name). Add an entry to any list, then rebuild:
 
 ```bash
 ./scripts/build-app.sh   # rebuilds dist/Peony.app
-./install.sh             # reinstalls it and restarts the login item
+./install.sh             # reinstalls it to /Applications and relaunches
 ```
 
 Adding a new flower's *shape* (not just its name and meaning) means adding a
@@ -139,9 +141,11 @@ create`, same as any release.
 ## If something looks wrong
 
 ```bash
-launchctl list | grep peony   # is the login item registered?
 open -a Peony                 # launch it by hand
 ```
+
+Not starting at login? Check System Settings > General > Login Items, or
+right-click 🌸 and look at **Start at Login**.
 
 ## Rebuilding from source
 

@@ -34,30 +34,15 @@ cp -R "$APP_SRC" "$APP_DEST"
 # it here is the same effect as right-click-Open, done once at install time.
 xattr -dr com.apple.quarantine "$APP_DEST" 2>/dev/null || true
 
-mkdir -p "$HOME/Library/LaunchAgents"
-cat > "$PLIST" <<PLIST_EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>$LABEL</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/bin/open</string>
-    <string>-a</string>
-    <string>$APP_DEST</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-</dict>
-</plist>
-PLIST_EOF
-
+# Start-at-login now lives in the app itself (LoginItem.swift registers it on
+# first launch, and the menu bar's right-click menu toggles it), so this
+# script's old LaunchAgent is removed — leaving it would mean two mechanisms
+# racing to launch the same app.
 launchctl unload "$PLIST" 2>/dev/null || true
-launchctl load "$PLIST"
+rm -f "$PLIST"
 
 open -a "$APP_DEST"
 
 echo "Installed. Look for 🌸 in your menu bar — it starts automatically at login from now on."
+echo "Turn that off any time: right-click 🌸 > Start at Login."
 echo "Remove it any time: ./uninstall.sh"
