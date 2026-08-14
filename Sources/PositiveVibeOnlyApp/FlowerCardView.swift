@@ -178,6 +178,37 @@ struct CardContentView: View {
 
 /// The full popover content: today's bloom behind, the lens card centred
 /// on top, in a fixed 640x640 frame per the approved handoff spec.
+/// A small gift-note toast: floats in above the bloom when the card
+/// appears, lingers, then fades — the moment of being handed the flowers.
+private struct GiftToast: View {
+    let text: String
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var visible = false
+
+    var body: some View {
+        Text(text)
+            .font(.custom("Karla", size: 12.5))
+            .foregroundColor(Color(hex: colorScheme == .dark ? "#F2E4D8" : "#6B4A3A"))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(Color(hex: colorScheme == .dark ? "#241A12" : "#FFFDFA"))
+                    .shadow(color: .black.opacity(0.14), radius: 10, x: 0, y: 3)
+            )
+            .opacity(visible ? 1 : 0)
+            .offset(y: visible ? 0 : -10)
+            .onAppear {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4)) {
+                    visible = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+                    withAnimation(.easeIn(duration: 0.5)) { visible = false }
+                }
+            }
+    }
+}
+
 struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
@@ -186,6 +217,11 @@ struct FlowerCardView: View {
     var onClose: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
+
+    private var toastText: String {
+        guard let flower = greeting?.flower else { return "Flowers for you 🌸" }
+        return "A \(flower.name.lowercased()) for you 🌸"
+    }
 
     var body: some View {
         ZStack {
@@ -204,6 +240,16 @@ struct FlowerCardView: View {
             }
         }
         .frame(width: 640, height: 640)
+        .overlay(alignment: .top) {
+            if greeting != nil {
+                GiftToast(text: toastText)
+                    .padding(.top, 56)
+                    .allowsHitTesting(false)
+                    // New identity per card so a refresh re-runs the toast —
+                    // a fresh draw is a fresh gift.
+                    .id(toastText + (greeting?.quote.text ?? ""))
+            }
+        }
         // .simultaneousGesture (not .gesture) so this coexists with the
         // "Update available" button inside the card — a quick tap still
         // reaches the button; only an actual drag moves the window.
