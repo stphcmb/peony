@@ -1,11 +1,11 @@
 import SwiftUI
 import PositiveVibeOnlyCore
 
-/// The centre "lens" card, sitting on top of the day's bloom. Content order
-/// is fixed per the approved handoff spec: greeting + date, flower name +
-/// sentence, a dash, quote + author, the compliment, a dash, then the
-/// day's prompt. Text colour hue tracks the flower; only lightness changes
-/// between light and dark mode.
+/// The centre "lens" card, sitting on top of the day's bloom. Content order:
+/// greeting + date, flower name + sentence, a dash, quote + author, a dash,
+/// the day's prompt, then a short encouragement as the closing line.
+/// Text colour hue tracks the flower; only lightness changes between light
+/// and dark mode.
 struct CardContentView: View {
     let greeting: Greeting
     let name: String?
@@ -72,11 +72,6 @@ struct CardContentView: View {
                     .foregroundColor(muted)
             }
 
-            Text(greeting.compliment)
-                .font(.custom("Karla", size: 13.5))
-                .foregroundColor(primary)
-                .multilineTextAlignment(.center)
-
             dashDivider()
 
             VStack(spacing: 3) {
@@ -89,6 +84,11 @@ struct CardContentView: View {
                     .foregroundColor(secondary)
                     .multilineTextAlignment(.center)
             }
+
+            Text(greeting.compliment)
+                .font(.custom("Karla", size: 13.5))
+                .foregroundColor(primary)
+                .multilineTextAlignment(.center)
 
             if updateAvailable {
                 Button {

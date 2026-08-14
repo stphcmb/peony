@@ -1,125 +1,401 @@
 {
   "version": 1,
   "quotes": [
-    { "text": "You do not have to be great to start, but you have to start to be great.", "author": "Zig Ziglar" },
-    { "text": "The best way out is always through.", "author": "Robert Frost" },
-    { "text": "Done is better than perfect, and shipped is better than done.", "author": "Anonymous" },
-    { "text": "Comparison is the thief of joy.", "author": "Theodore Roosevelt" },
-    { "text": "What you do every day matters more than what you do once in a while.", "author": "Gretchen Rubin" },
-    { "text": "Amateurs sit and wait for inspiration. The rest of us just get up and go to work.", "author": "Stephen King" },
-    { "text": "Fall seven times, stand up eight.", "author": "Japanese proverb" },
-    { "text": "The obstacle is the way.", "author": "Marcus Aurelius" },
-    { "text": "Slow is smooth. Smooth is fast.", "author": "Navy SEAL maxim" },
-    { "text": "You are allowed to be both a masterpiece and a work in progress simultaneously.", "author": "Sophia Bush" },
-    { "text": "Simplicity is the ultimate sophistication.", "author": "Leonardo da Vinci" },
-    { "text": "Nothing is less productive than to make more efficient what should not be done at all.", "author": "Peter Drucker" },
-    { "text": "A year from now you may wish you had started today.", "author": "Karen Lamb" },
-    { "text": "If you are the smartest person in the room, find another room.", "author": "Anonymous" },
-    { "text": "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.", "author": "Antoine de Saint-Exupéry" },
-    { "text": "Energy and persistence conquer all things.", "author": "Benjamin Franklin" },
-    { "text": "The person who moves a mountain begins by carrying away small stones.", "author": "Confucius" },
-    { "text": "Courage is not the absence of fear, but the judgement that something else is more important.", "author": "Ambrose Redmoon" },
-    { "text": "Make it work, make it right, make it fast.", "author": "Kent Beck" },
-    { "text": "You cannot pour from an empty cup. Rest is part of the work.", "author": "Anonymous" },
-    { "text": "The cure for boredom is curiosity. There is no cure for curiosity.", "author": "Dorothy Parker" },
-    { "text": "Slow progress is still progress. Stalled is the only failure.", "author": "Anonymous" },
-    { "text": "Talk is cheap. Show me the code.", "author": "Linus Torvalds" },
-    { "text": "Slay the dragon in front of you, not the one on the horizon.", "author": "Anonymous" },
-    { "text": "Slowly is how most real things happen.", "author": "Anonymous" },
-    { "text": "Give more than you take, and the room reorganises around you.", "author": "Anonymous" },
-    { "text": "Slack in the system is not waste. It is where adaptation lives.", "author": "Tom DeMarco" },
-    { "text": "Strong opinions, loosely held.", "author": "Paul Saffo" },
-    { "text": "The work you do while you procrastinate is probably the work you should be doing forever.", "author": "Jessica Hische" },
-    { "text": "It is not that I am so smart, it is just that I stay with problems longer.", "author": "Albert Einstein" }
+    {
+      "text": "You do not have to be great to start, but you have to start to be great.",
+      "author": "Zig Ziglar"
+    },
+    {
+      "text": "The best way out is always through.",
+      "author": "Robert Frost"
+    },
+    {
+      "text": "Done is better than perfect, and shipped is better than done.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Comparison is the thief of joy.",
+      "author": "Theodore Roosevelt"
+    },
+    {
+      "text": "What you do every day matters more than what you do once in a while.",
+      "author": "Gretchen Rubin"
+    },
+    {
+      "text": "Amateurs sit and wait for inspiration. The rest of us just get up and go to work.",
+      "author": "Stephen King"
+    },
+    {
+      "text": "Fall seven times, stand up eight.",
+      "author": "Japanese proverb"
+    },
+    {
+      "text": "The obstacle is the way.",
+      "author": "Marcus Aurelius"
+    },
+    {
+      "text": "Slow is smooth. Smooth is fast.",
+      "author": "Navy SEAL maxim"
+    },
+    {
+      "text": "You are allowed to be both a masterpiece and a work in progress simultaneously.",
+      "author": "Sophia Bush"
+    },
+    {
+      "text": "Simplicity is the ultimate sophistication.",
+      "author": "Leonardo da Vinci"
+    },
+    {
+      "text": "Nothing is less productive than to make more efficient what should not be done at all.",
+      "author": "Peter Drucker"
+    },
+    {
+      "text": "A year from now you may wish you had started today.",
+      "author": "Karen Lamb"
+    },
+    {
+      "text": "If you are the smartest person in the room, find another room.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.",
+      "author": "Antoine de Saint-Exupéry"
+    },
+    {
+      "text": "Energy and persistence conquer all things.",
+      "author": "Benjamin Franklin"
+    },
+    {
+      "text": "The person who moves a mountain begins by carrying away small stones.",
+      "author": "Confucius"
+    },
+    {
+      "text": "Courage is not the absence of fear, but the judgement that something else is more important.",
+      "author": "Ambrose Redmoon"
+    },
+    {
+      "text": "Make it work, make it right, make it fast.",
+      "author": "Kent Beck"
+    },
+    {
+      "text": "You cannot pour from an empty cup. Rest is part of the work.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "The cure for boredom is curiosity. There is no cure for curiosity.",
+      "author": "Dorothy Parker"
+    },
+    {
+      "text": "Slow progress is still progress. Stalled is the only failure.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Talk is cheap. Show me the code.",
+      "author": "Linus Torvalds"
+    },
+    {
+      "text": "Slay the dragon in front of you, not the one on the horizon.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Slowly is how most real things happen.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Give more than you take, and the room reorganises around you.",
+      "author": "Anonymous"
+    },
+    {
+      "text": "Slack in the system is not waste. It is where adaptation lives.",
+      "author": "Tom DeMarco"
+    },
+    {
+      "text": "Strong opinions, loosely held.",
+      "author": "Paul Saffo"
+    },
+    {
+      "text": "The work you do while you procrastinate is probably the work you should be doing forever.",
+      "author": "Jessica Hische"
+    },
+    {
+      "text": "It is not that I am so smart, it is just that I stay with problems longer.",
+      "author": "Albert Einstein"
+    }
   ],
   "compliments": [
-    "You ask better questions than most people give answers.",
-    "You finish things. That is rarer than it sounds.",
-    "You explain hard ideas without making anyone feel small.",
-    "You notice the detail everyone else scrolled past.",
-    "You are the person others quietly copy.",
-    "You give your work away instead of guarding it. That compounds.",
-    "You would rather be corrected than be comfortable. That is real strength.",
-    "You turn a mess into a plan faster than most people turn a plan into a plan.",
-    "Your standards are high and you still ship. Both at once is unusual.",
-    "You make the people around you more capable, not more dependent.",
-    "You are patient with people and impatient with problems. Correct order.",
-    "You changed your mind about something recently, and that took guts.",
-    "You do the unglamorous part properly.",
-    "Your instinct to simplify is the most valuable thing you own.",
-    "You take responsibility before anyone asks who is responsible.",
-    "You are much further along than the version of you who started this.",
-    "You show up on the boring days. That is the whole trick.",
-    "You leave things better documented than you found them.",
-    "You are honest about what you do not know, which makes you trustworthy on what you do.",
-    "You care about the craft even when nobody is checking.",
-    "You spot the assumption hiding under the argument.",
-    "You would help someone who could never repay you. That is character.",
-    "You keep your promises to yourself, not just to other people.",
-    "You built something that did not exist yesterday. Again.",
-    "You are allowed to be proud of how far this has come.",
-    "You listen to the objection instead of the tone it arrived in.",
-    "You make hard things look calm.",
-    "You are the reason at least one thing this week went right.",
-    "You are good at this. Not lucky. Good.",
-    "You keep learning in public, and that gives other people permission to."
+    "The world is your oyster.",
+    "You've got this.",
+    "Onward and upward.",
+    "Fortune favors the bold.",
+    "Today is yours for the taking.",
+    "The best is yet to come.",
+    "Go make some waves.",
+    "Bloom where you're planted.",
+    "Shoot for the moon.",
+    "Trust your wings.",
+    "You're on a roll.",
+    "Little by little, one travels far.",
+    "Make today count.",
+    "The sky's the limit.",
+    "Keep shining.",
+    "Go get 'em.",
+    "Every day is a fresh start.",
+    "It's your story — turn the page.",
+    "You're exactly where you need to be.",
+    "Leap, and the net will appear.",
+    "Good things are coming.",
+    "Ride the wave.",
+    "Your future is bright.",
+    "Dare greatly today.",
+    "You were made for days like this.",
+    "Nothing can dim your light.",
+    "Adventure awaits.",
+    "Today has your name on it.",
+    "Begin anywhere.",
+    "Luck loves a mover."
   ],
   "prompts": [
-    { "kind": "A", "title": "What have you been putting off because it felt too small to matter?", "body": "Do that one today, before anything bigger." },
-    { "kind": "B", "title": "Tell someone the specific thing they did well.", "body": "Not the work in general. The exact part you noticed." },
-    { "kind": "A", "title": "What would you do this afternoon if you weren't worried about doing it wrong?", "body": "Start there, even for ten minutes." },
-    { "kind": "B", "title": "Leave one thing unfinished tonight on purpose.", "body": "It will still be there tomorrow, and so will you." },
-    { "kind": "A", "title": "Who taught you something you still use, that you never thanked?", "body": "Send them one sentence today." },
-    { "kind": "B", "title": "Ask a teammate how they're actually doing, and wait for the real answer.", "body": "Not the one that fits between meetings." },
-    { "kind": "A", "title": "What's a decision you're circling instead of making?", "body": "Pick the reversible option and move. You can always adjust." },
-    { "kind": "B", "title": "Step away from the screen for ten minutes with nothing to check.", "body": "No phone either. Just the ten minutes." },
-    { "kind": "A", "title": "What did you do this month that you'd be proud to explain to a stranger?", "body": "Write it down somewhere you'll see it again." },
-    { "kind": "B", "title": "Give credit out loud for something someone else built.", "body": "In the same meeting or thread where you'd usually take it." },
-    { "kind": "A", "title": "What's one thing you know now that you wish you'd known a year ago?", "body": "Someone near you is about to learn it the hard way. Tell them first." },
-    { "kind": "B", "title": "End work on time today, even if the list isn't done.", "body": "The list is never done. That's not the signal to stay." },
-    { "kind": "A", "title": "What are you avoiding because the first step is unclear?", "body": "You don't need the whole path. Just name the first step." },
-    { "kind": "B", "title": "Notice who usually goes unnoticed, and say something true about their work.", "body": "Specific beats nice." },
-    { "kind": "A", "title": "What's something you believed strongly a year ago that you've since changed your mind about?", "body": "That's not inconsistency. That's the system working." },
-    { "kind": "B", "title": "Eat lunch away from your desk today.", "body": "Away from the screen counts as away." },
-    { "kind": "A", "title": "What would you build if you knew it wouldn't need to be perfect?", "body": "Sketch it, badly, for five minutes." },
-    { "kind": "B", "title": "Forgive yourself for the thing you've been replaying.", "body": "You already learned what it had to teach you." },
-    { "kind": "A", "title": "What's a question you've stopped asking because you assumed you knew the answer?", "body": "Ask it again. See if the answer's still the same." },
-    { "kind": "B", "title": "Say no to one thing today that doesn't deserve your evening.", "body": "You don't owe a reason. \"Not this time\" is a full sentence." },
-    { "kind": "A", "title": "What's the smallest version of the big thing you're waiting to start?", "body": "Do the small version today." },
-    { "kind": "B", "title": "Let someone else be right today, even when you could win the point.", "body": "Being right and being kind aren't always the same move." },
-    { "kind": "A", "title": "What's something you did today that no one is going to notice?", "body": "Notice it yourself. That's allowed." },
-    { "kind": "B", "title": "Text someone you've been meaning to check on.", "body": "Not a big message. Just \"thinking of you\" is enough." }
+    {
+      "kind": "A",
+      "title": "What have you been putting off because it felt too small to matter?",
+      "body": "Do that one today, before anything bigger."
+    },
+    {
+      "kind": "B",
+      "title": "Tell someone the specific thing they did well.",
+      "body": "Not the work in general. The exact part you noticed."
+    },
+    {
+      "kind": "A",
+      "title": "What would you do this afternoon if you weren't worried about doing it wrong?",
+      "body": "Start there, even for ten minutes."
+    },
+    {
+      "kind": "B",
+      "title": "Leave one thing unfinished tonight on purpose.",
+      "body": "It will still be there tomorrow, and so will you."
+    },
+    {
+      "kind": "A",
+      "title": "Who taught you something you still use, that you never thanked?",
+      "body": "Send them one sentence today."
+    },
+    {
+      "kind": "B",
+      "title": "Ask a teammate how they're actually doing, and wait for the real answer.",
+      "body": "Not the one that fits between meetings."
+    },
+    {
+      "kind": "A",
+      "title": "What's a decision you're circling instead of making?",
+      "body": "Pick the reversible option and move. You can always adjust."
+    },
+    {
+      "kind": "B",
+      "title": "Step away from the screen for ten minutes with nothing to check.",
+      "body": "No phone either. Just the ten minutes."
+    },
+    {
+      "kind": "A",
+      "title": "What did you do this month that you'd be proud to explain to a stranger?",
+      "body": "Write it down somewhere you'll see it again."
+    },
+    {
+      "kind": "B",
+      "title": "Give credit out loud for something someone else built.",
+      "body": "In the same meeting or thread where you'd usually take it."
+    },
+    {
+      "kind": "A",
+      "title": "What's one thing you know now that you wish you'd known a year ago?",
+      "body": "Someone near you is about to learn it the hard way. Tell them first."
+    },
+    {
+      "kind": "B",
+      "title": "End work on time today, even if the list isn't done.",
+      "body": "The list is never done. That's not the signal to stay."
+    },
+    {
+      "kind": "A",
+      "title": "What are you avoiding because the first step is unclear?",
+      "body": "You don't need the whole path. Just name the first step."
+    },
+    {
+      "kind": "B",
+      "title": "Notice who usually goes unnoticed, and say something true about their work.",
+      "body": "Specific beats nice."
+    },
+    {
+      "kind": "A",
+      "title": "What's something you believed strongly a year ago that you've since changed your mind about?",
+      "body": "That's not inconsistency. That's the system working."
+    },
+    {
+      "kind": "B",
+      "title": "Eat lunch away from your desk today.",
+      "body": "Away from the screen counts as away."
+    },
+    {
+      "kind": "A",
+      "title": "What would you build if you knew it wouldn't need to be perfect?",
+      "body": "Sketch it, badly, for five minutes."
+    },
+    {
+      "kind": "B",
+      "title": "Forgive yourself for the thing you've been replaying.",
+      "body": "You already learned what it had to teach you."
+    },
+    {
+      "kind": "A",
+      "title": "What's a question you've stopped asking because you assumed you knew the answer?",
+      "body": "Ask it again. See if the answer's still the same."
+    },
+    {
+      "kind": "B",
+      "title": "Say no to one thing today that doesn't deserve your evening.",
+      "body": "You don't owe a reason. \"Not this time\" is a full sentence."
+    },
+    {
+      "kind": "A",
+      "title": "What's the smallest version of the big thing you're waiting to start?",
+      "body": "Do the small version today."
+    },
+    {
+      "kind": "B",
+      "title": "Let someone else be right today, even when you could win the point.",
+      "body": "Being right and being kind aren't always the same move."
+    },
+    {
+      "kind": "A",
+      "title": "What's something you did today that no one is going to notice?",
+      "body": "Notice it yourself. That's allowed."
+    },
+    {
+      "kind": "B",
+      "title": "Text someone you've been meaning to check on.",
+      "body": "Not a big message. Just \"thinking of you\" is enough."
+    }
   ],
   "flowers": [
-    { "name": "Sunflower", "meaning": "Faces the light on purpose. A steady kind of optimism." },
-    { "name": "Cherry Blossom", "meaning": "Blooms fast, falls fast, and is loved precisely because it doesn't last." },
-    { "name": "Lotus", "meaning": "Grows up clean through muddy water. Nothing about its start shows in the flower." },
-    { "name": "Lavender", "meaning": "Calm that you can smell. Also famously hard to kill." },
-    { "name": "Peony", "meaning": "Full, a little too much, and unapologetic about it." },
-    { "name": "Daisy", "meaning": "Small and plain-looking, and somehow the flower everyone trusts." },
-    { "name": "Orchid", "meaning": "Takes years to bloom. Worth the wait every time." },
-    { "name": "Tulip", "meaning": "Arrives in a crowd of identical stems and still stands out." },
-    { "name": "Iris", "meaning": "Named for the messenger of the gods. Built to be noticed." },
-    { "name": "Chrysanthemum", "meaning": "Blooms latest in the year, when most things have already given up." },
-    { "name": "Marigold", "meaning": "Thrives in poor soil. Toughness that looks like cheerfulness." },
-    { "name": "Poppy", "meaning": "Grows wild in disturbed ground. The flower that shows up after things get hard." },
-    { "name": "Camellia", "meaning": "Flowers in winter, which is the whole point of it." },
-    { "name": "Jasmine", "meaning": "Opens at night and gives its best scent when no one is watching." },
-    { "name": "Hydrangea", "meaning": "Changes color with the soil under it. Shaped by where it's planted, not less itself for it." },
-    { "name": "Wisteria", "meaning": "Climbs slowly for years before the display everyone remembers." },
-    { "name": "Magnolia", "meaning": "One of the oldest flowering plants alive. Dignity that predates the bees." },
-    { "name": "Freesia", "meaning": "Small flower, disproportionately good smell. Punches above its size." },
-    { "name": "Anemone", "meaning": "Named for the wind. Moves easily without breaking." },
-    { "name": "Ranunculus", "meaning": "Looks hand-folded, petal by petal. Patience made visible." },
-    { "name": "Gerbera", "meaning": "Plain shape, loud color. Doesn't overthink it." },
-    { "name": "Snapdragon", "meaning": "Squeeze the bloom and it opens like a mouth. Playful, a little unexpected." },
-    { "name": "Zinnia", "meaning": "Bred to be nearly impossible to kill in the heat. Reliable by design." },
-    { "name": "Carnation", "meaning": "Ruffled and long-lasting. The flower that outstays the bouquet." },
-    { "name": "Bluebell", "meaning": "Carpets a whole forest floor for two weeks a year, then waits eleven months." },
-    { "name": "Hibiscus", "meaning": "Lasts one day, fully open. Some things are worth doing all the way even if briefly." },
-    { "name": "Forget-Me-Not", "meaning": "Named for exactly what it asks of you." },
-    { "name": "Amaryllis", "meaning": "Grows from a bulb with nothing visible, then suddenly a foot of bloom." },
-    { "name": "Dahlia", "meaning": "Petals in perfect spirals. Structure and softness at once." },
-    { "name": "Protea", "meaning": "Survives wildfire; some species need fire to seed. Built for the hard reset." }
+    {
+      "name": "Sunflower",
+      "meaning": "Faces the light on purpose. A steady kind of optimism."
+    },
+    {
+      "name": "Cherry Blossom",
+      "meaning": "Blooms fast, falls fast, and is loved precisely because it doesn't last."
+    },
+    {
+      "name": "Lotus",
+      "meaning": "Grows up clean through muddy water. Nothing about its start shows in the flower."
+    },
+    {
+      "name": "Lavender",
+      "meaning": "Calm that you can smell. Also famously hard to kill."
+    },
+    {
+      "name": "Peony",
+      "meaning": "Full, a little too much, and unapologetic about it."
+    },
+    {
+      "name": "Daisy",
+      "meaning": "Small and plain-looking, and somehow the flower everyone trusts."
+    },
+    {
+      "name": "Orchid",
+      "meaning": "Takes years to bloom. Worth the wait every time."
+    },
+    {
+      "name": "Tulip",
+      "meaning": "Arrives in a crowd of identical stems and still stands out."
+    },
+    {
+      "name": "Iris",
+      "meaning": "Named for the messenger of the gods. Built to be noticed."
+    },
+    {
+      "name": "Chrysanthemum",
+      "meaning": "Blooms latest in the year, when most things have already given up."
+    },
+    {
+      "name": "Marigold",
+      "meaning": "Thrives in poor soil. Toughness that looks like cheerfulness."
+    },
+    {
+      "name": "Poppy",
+      "meaning": "Grows wild in disturbed ground. The flower that shows up after things get hard."
+    },
+    {
+      "name": "Camellia",
+      "meaning": "Flowers in winter, which is the whole point of it."
+    },
+    {
+      "name": "Jasmine",
+      "meaning": "Opens at night and gives its best scent when no one is watching."
+    },
+    {
+      "name": "Hydrangea",
+      "meaning": "Changes color with the soil under it. Shaped by where it's planted, not less itself for it."
+    },
+    {
+      "name": "Wisteria",
+      "meaning": "Climbs slowly for years before the display everyone remembers."
+    },
+    {
+      "name": "Magnolia",
+      "meaning": "One of the oldest flowering plants alive. Dignity that predates the bees."
+    },
+    {
+      "name": "Freesia",
+      "meaning": "Small flower, disproportionately good smell. Punches above its size."
+    },
+    {
+      "name": "Anemone",
+      "meaning": "Named for the wind. Moves easily without breaking."
+    },
+    {
+      "name": "Ranunculus",
+      "meaning": "Looks hand-folded, petal by petal. Patience made visible."
+    },
+    {
+      "name": "Gerbera",
+      "meaning": "Plain shape, loud color. Doesn't overthink it."
+    },
+    {
+      "name": "Snapdragon",
+      "meaning": "Squeeze the bloom and it opens like a mouth. Playful, a little unexpected."
+    },
+    {
+      "name": "Zinnia",
+      "meaning": "Bred to be nearly impossible to kill in the heat. Reliable by design."
+    },
+    {
+      "name": "Carnation",
+      "meaning": "Ruffled and long-lasting. The flower that outstays the bouquet."
+    },
+    {
+      "name": "Bluebell",
+      "meaning": "Carpets a whole forest floor for two weeks a year, then waits eleven months."
+    },
+    {
+      "name": "Hibiscus",
+      "meaning": "Lasts one day, fully open. Some things are worth doing all the way even if briefly."
+    },
+    {
+      "name": "Forget-Me-Not",
+      "meaning": "Named for exactly what it asks of you."
+    },
+    {
+      "name": "Amaryllis",
+      "meaning": "Grows from a bulb with nothing visible, then suddenly a foot of bloom."
+    },
+    {
+      "name": "Dahlia",
+      "meaning": "Petals in perfect spirals. Structure and softness at once."
+    },
+    {
+      "name": "Protea",
+      "meaning": "Survives wildfire; some species need fire to seed. Built for the hard reset."
+    }
   ]
 }
