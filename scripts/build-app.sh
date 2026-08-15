@@ -9,7 +9,7 @@ set -euo pipefail
 
 # Bump this to match the git tag before cutting a release — the update
 # nudge (UpdateChecker.swift) compares this against GitHub's latest tag.
-VERSION="1.2.1"
+VERSION="1.3.0"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR"
