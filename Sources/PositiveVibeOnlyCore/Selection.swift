@@ -20,9 +20,10 @@ public enum Selection {
     ///
     /// Deterministic in the date and hour: everyone on the team sees the
     /// same greeting in the same hour, no matter how many times they click
-    /// the icon. The prompt alone stays fixed for the whole day — it's a
-    /// day-scale invitation, not an hourly one — with Mon/Wed/Fri drawing
-    /// from pool A and the rest of the week from pool B. Pure function of
+    /// the icon. Every component rotates hourly, the prompt included (it
+    /// was day-pinned until 2026-08-15 — the same TODAY all day read as
+    /// "stuck"); its pool is still weekday-gated, Mon/Wed/Fri drawing from
+    /// pool A and the rest of the week from pool B. Pure function of
     /// `date` and `calendar`, no I/O.
     public static func greeting(for content: Content, date: Date = Date(), calendar: Calendar = .current) -> Greeting? {
         guard !content.quotes.isEmpty, !content.compliments.isEmpty else { return nil }
@@ -43,7 +44,7 @@ public enum Selection {
 
         let quote = content.quotes[pick(slot: slot, salt: 1, count: content.quotes.count)]
         let compliment = content.compliments[pick(slot: slot, salt: 2, count: content.compliments.count)]
-        let prompt = fallbackPool[dayIndex % fallbackPool.count]
+        let prompt = fallbackPool[pick(slot: slot, salt: 4, count: fallbackPool.count)]
         let flower = content.flowers.isEmpty ? nil
             : content.flowers[pick(slot: slot, salt: 3, count: content.flowers.count)]
 

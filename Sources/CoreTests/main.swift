@@ -94,12 +94,17 @@ do {
     check("compliment and flower are not locked in lockstep", pairs.count > 2)
 }
 
-// The prompt is a day-scale invitation — it must NOT change with the hour.
+// The prompt rotates with the hour like every other component (its pool is
+// still weekday-gated to kind A/B).
 do {
     let content = makeContent(prompts: [("A", "T0", "b0"), ("A", "T1", "b1"), ("A", "T2", "b2")])
-    let g8 = Selection.greeting(for: content, date: date(2026, 8, 10, calendar, hour: 8), calendar: calendar)
-    let g17 = Selection.greeting(for: content, date: date(2026, 8, 10, calendar, hour: 17), calendar: calendar)
-    check("prompt is stable across hours of one day", g8?.prompt.title == g17?.prompt.title)
+    var titles = Set<String>()
+    for hour in 0..<24 {
+        if let g = Selection.greeting(for: content, date: date(2026, 8, 10, calendar, hour: hour), calendar: calendar) {
+            titles.insert(g.prompt.title)
+        }
+    }
+    check("prompt rotates across the hours of one day", titles.count > 1)
 }
 
 // Only pool B entries exist, but today wants pool A — must fall back, not return nil.
