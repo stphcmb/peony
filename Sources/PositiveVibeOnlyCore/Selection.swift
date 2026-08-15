@@ -33,11 +33,7 @@ public enum Selection {
         let weekday = calendar.component(.weekday, from: date) // 1 = Sunday ... 7 = Saturday
         let hour = calendar.component(.hour, from: date)
 
-        // Indexing pools by the raw hour slot would walk each list in file
-        // order, one entry per hour — a carousel, not a draw. Multiplying by
-        // a large odd constant (Knuth's) before the modulo keeps the pick
-        // deterministic but makes consecutive hours land somewhere fresh.
-        let scrambled = (dayIndex * 24 + hour) &* 2654435761
+        let slot = dayIndex * 24 + hour
 
         let wantsPoolA = [2, 4, 6].contains(weekday) // Mon, Wed, Fri
         let kind = wantsPoolA ? "A" : "B"
@@ -45,12 +41,29 @@ public enum Selection {
         let fallbackPool = pool.isEmpty ? content.prompts : pool
         guard !fallbackPool.isEmpty else { return nil }
 
-        let quote = content.quotes[scrambled % content.quotes.count]
-        let compliment = content.compliments[scrambled % content.compliments.count]
+        let quote = content.quotes[pick(slot: slot, salt: 1, count: content.quotes.count)]
+        let compliment = content.compliments[pick(slot: slot, salt: 2, count: content.compliments.count)]
         let prompt = fallbackPool[dayIndex % fallbackPool.count]
-        let flower = content.flowers.isEmpty ? nil : content.flowers[scrambled % content.flowers.count]
+        let flower = content.flowers.isEmpty ? nil
+            : content.flowers[pick(slot: slot, salt: 3, count: content.flowers.count)]
 
         return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
+    }
+
+    /// Deterministic draw for one component of the hour's greeting. The
+    /// splitmix64 finalizer (nonlinear, unlike a shared multiply-then-modulo)
+    /// plus a per-component salt keeps quote, compliment and flower
+    /// independent of each other: with one shared linear index, equal-size
+    /// pools lock into fixed pairings forever — flower i always bringing
+    /// compliment i — and only lcm(sizes) of the possible combinations ever
+    /// appear. Still a pure function of the hour slot, so the whole team
+    /// sees the same card in the same hour.
+    private static func pick(slot: Int, salt: UInt64, count: Int) -> Int {
+        var z = UInt64(bitPattern: Int64(slot)) &+ (salt &* 0x9E3779B97F4A7C15)
+        z = (z ^ (z >> 30)) &* 0xBF58476D1CE4E5B9
+        z = (z ^ (z >> 27)) &* 0x94D049BB133111EB
+        z ^= z >> 31
+        return Int(z % UInt64(count))
     }
 
     /// A one-off random greeting, for the "Surprise Me" menu action. Draws

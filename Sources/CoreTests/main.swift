@@ -77,6 +77,23 @@ do {
     check("next hour changes the flower", g10?.flower?.name != g11?.flower?.name)
 }
 
+// Components must mix independently: with equal-size pools (2 compliments,
+// 2 flowers) a shared linear index locks compliment i to flower i forever —
+// only 2 of the 4 pairings would ever appear. Scan a week of hours and
+// require more than 2 distinct pairings.
+do {
+    let content = makeContent(prompts: [("A", "T", "tb")], flowers: 2)
+    var pairs = Set<String>()
+    for day in 10...16 {
+        for hour in 0..<24 {
+            if let g = Selection.greeting(for: content, date: date(2026, 8, day, calendar, hour: hour), calendar: calendar) {
+                pairs.insert("\(g.compliment)|\(g.flower?.name ?? "-")")
+            }
+        }
+    }
+    check("compliment and flower are not locked in lockstep", pairs.count > 2)
+}
+
 // The prompt is a day-scale invitation — it must NOT change with the hour.
 do {
     let content = makeContent(prompts: [("A", "T0", "b0"), ("A", "T1", "b1"), ("A", "T2", "b2")])
