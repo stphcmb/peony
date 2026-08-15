@@ -1,28 +1,21 @@
 import AppKit
+import CoreGraphics
 import SwiftUI
 import PositiveVibeOnlyCore
 
-/// Wraps `FlowerCardView` with the entrance motion from the approved spec:
-/// 180ms opacity+scale in (0.94 -> 1), dropped to a plain fast fade when the
-/// system's reduce-motion setting is on. The exit fade is driven separately,
+/// Wraps either card (greeting or break) with the entrance motion from the
+/// approved spec: 180ms opacity fade plus a springy scale+rotation pop,
+/// dropped to a plain fast fade when the system's reduce-motion setting is
+/// on. Generic so the break card gets exactly the same entrance as the
+/// greeting card, not a re-tuned copy. The exit fade is driven separately,
 /// on the NSPanel itself — see `dismissPanel()`.
-private struct AnimatedCardView: View {
-    let greeting: Greeting?
-    let name: String?
-    let toastText: String
+private struct AnimatedEntrance<Content: View>: View {
     let reduceMotion: Bool
-    @ObservedObject var updateState: UpdateState
-    var onRefresh: (() -> Void)? = nil
-    var onClose: (() -> Void)? = nil
-    var onTogglePin: (() -> Void)? = nil
-    var onDragChanged: ((CGSize) -> Void)? = nil
-    var onDragEnded: (() -> Void)? = nil
+    @ViewBuilder let content: Content
     @State private var isVisible = false
 
     var body: some View {
-        FlowerCardView(greeting: greeting, name: name, toastText: toastText, updateState: updateState,
-                       onRefresh: onRefresh, onClose: onClose, onTogglePin: onTogglePin,
-                       onDragChanged: onDragChanged, onDragEnded: onDragEnded)
+        content
             .opacity(isVisible ? 1 : 0)
             .animation(.easeOut(duration: reduceMotion ? 0.12 : 0.18), value: isVisible)
             // A separate .animation() boundary so the pop (scale+rotation)
@@ -49,6 +42,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoFadeWork: DispatchWorkItem?
     private var lastHourSlot = -1
 
+    private var breakClock = BreakClock()
+    private var breakTimer: Timer?
+    // Which of the two card types is currently in the panel — the pin/close
+    // gestures and the hourly-bloom suppression both need to know.
+    private var isShowingBreakCard = false
+    private var lastBreakFireDate: Date?
+    private let breakTickInterval: TimeInterval = 30
+
     private let panelSize: CGFloat = 640
     /// Petal tips reach 300pt from centre, per spec — the rest of the 640pt
     /// frame is transparent margin, so only this much has to stay on screen.
@@ -70,13 +71,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hourly bloom. A 60s check beats a 3600s timer here: after sleep a
         // long timer just drifts, while this notices the changed hour within
         // a minute of waking.
-        UserDefaults.standard.register(defaults: ["HourlyBloom": true])
+        UserDefaults.standard.register(defaults: ["HourlyBloom": true, "BreakReminders": true])
         lastHourSlot = Self.currentHourSlot()
         let timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.hourlyTick() }
         }
         timer.tolerance = 5
         hourlyTimer = timer
+
+        // Same 30s-tick pattern as the hourly timer; BreakClock does the
+        // actual state tracking, this just feeds it idle time.
+        let breakTimer = Timer.scheduledTimer(withTimeInterval: breakTickInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.activityTick() }
+        }
+        breakTimer.tolerance = 5
+        self.breakTimer = breakTimer
     }
 
     private static func currentHourSlot(calendar: Calendar = .current) -> Int {
@@ -96,17 +105,119 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// On the turn of the hour: a visible card (pinned or not) refreshes in
     /// place to the new hour's pick; a hidden card blooms on its own and
     /// fades after 20s — unless the user pinned it, dragged it, or turned
-    /// "Bloom Every Hour" off.
+    /// "Bloom Every Hour" off. A break card in either position is left
+    /// alone: never clobber it with the ambient bloom, and never pop the
+    /// ambient bloom right on top of (or right after) a break card.
     private func hourlyTick() {
         let slot = Self.currentHourSlot()
         guard slot != lastHourSlot else { return }
         lastHourSlot = slot
         if panel.isVisible {
+            guard !isShowingBreakCard else { return }
             showPanel()
-        } else if hourlyBloomEnabled {
+        } else if hourlyBloomEnabled, !breakSuppressesAmbientBloom {
             showPanel()
             scheduleAutoFade()
         }
+    }
+
+    private var breakRemindersEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "BreakReminders")
+    }
+
+    @objc private func toggleBreakReminders() {
+        UserDefaults.standard.set(!breakRemindersEnabled, forKey: "BreakReminders")
+    }
+
+    /// True for 10 minutes after a break last fired — keeps the hourly
+    /// ambient bloom from popping up right on top of, or right after
+    /// dismissing, a break card. Never two popups within a minute of
+    /// each other.
+    private var breakSuppressesAmbientBloom: Bool {
+        guard let lastBreakFireDate else { return false }
+        return Date().timeIntervalSince(lastBreakFireDate) < 10 * 60
+    }
+
+    /// 30s cadence: reads system idle time via CGEventSource (no
+    /// accessibility or screen-recording permission needed — this API is
+    /// free) and feeds BreakClock a tick. The timer itself never stops;
+    /// turning "Break Reminders" off just makes each tick a no-op, so
+    /// re-enabling it doesn't need a relaunch.
+    private func activityTick() {
+        guard breakRemindersEnabled else { return }
+        let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: CGEventType(rawValue: ~0)!)
+        let event = breakClock.tick(idleSeconds: idle, interval: breakTickInterval)
+
+        // Walking away while the break card is up: BreakClock already
+        // cleared its own state above (idle >= 5min always resets it) —
+        // take the card down to match, rather than leaving a nudge nobody's
+        // there to see.
+        if isShowingBreakCard, idle >= 300 {
+            dismissPanel()
+            return
+        }
+
+        if event == .breakDue {
+            lastBreakFireDate = Date()
+            showBreakCard()
+        }
+    }
+
+    /// Shows the break card: a random careNudge (a one-off draw, like
+    /// Surprise Me) paired with the hour's flower — not a random one, so
+    /// the bloom still matches whatever the greeting card would show right
+    /// now. Silently does nothing if content failed to load or ships no
+    /// nudges — a missed break reminder is never worth a broken card over.
+    private func showBreakCard() {
+        guard let button = statusItem.button, let buttonWindow = button.window else { return }
+        guard let content = try? ContentStore.load(), let nudge = content.careNudges.randomElement() else { return }
+        let flower = Selection.greeting(for: content)?.flower
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+
+        autoFadeWork?.cancel()
+        autoFadeWork = nil
+        dragStartOrigin = nil
+
+        let toastText = BreakToasts.pick()
+        let hosting = NSHostingView(rootView: AnimatedEntrance(reduceMotion: reduceMotion) {
+            BreakCardView(
+                nudge: nudge, flower: flower, toastText: toastText,
+                onTookIt: { [weak self] in self?.acknowledgeBreakAndDismiss() },
+                onSnooze: { [weak self] in self?.snoozeBreakShortAndDismiss() },
+                onClose: { [weak self] in self?.snoozeBreakAndDismiss() }
+            )
+        })
+        hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
+        panel.contentView = hosting
+        panel.alphaValue = 1
+        isShowingBreakCard = true
+
+        if !panel.isVisible {
+            panel.setFrameOrigin(randomOrigin(on: buttonWindow.screen))
+        }
+
+        panel.orderFrontRegardless()
+        installDismissMonitors(isBreakCard: true)
+    }
+
+    /// "Took it ✓" — counts as the real thing, clock restarts from zero.
+    private func acknowledgeBreakAndDismiss() {
+        breakClock.acknowledge()
+        dismissPanel()
+    }
+
+    /// "5 more minutes".
+    private func snoozeBreakShortAndDismiss() {
+        breakClock.snooze(for: 300)
+        dismissPanel()
+    }
+
+    /// Esc or × on the break card — same longer snooze either way:
+    /// dismissal without punishment, but the card returns while the streak
+    /// continues.
+    private func snoozeBreakAndDismiss() {
+        breakClock.snooze(for: 600)
+        dismissPanel()
     }
 
     private func scheduleAutoFade() {
@@ -151,8 +262,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// A visible break card is never toggled closed by the icon — a
+    /// user-opened greeting replaces it instead (the break clock keeps
+    /// counting either way); only a visible greeting card toggles shut.
     private func togglePanel() {
-        if panel.isVisible {
+        if panel.isVisible && !isShowingBreakCard {
             dismissPanel()
         } else {
             showPanel()
@@ -177,6 +291,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hourly.target = self
         hourly.state = hourlyBloomEnabled ? .on : .off
         menu.addItem(hourly)
+        let breakReminders = NSMenuItem(title: "Break Reminders", action: #selector(toggleBreakReminders), keyEquivalent: "")
+        breakReminders.target = self
+        breakReminders.state = breakRemindersEnabled ? .on : .off
+        menu.addItem(breakReminders)
         let login = NSMenuItem(title: "Start at Login", action: #selector(toggleLoginItem), keyEquivalent: "")
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
@@ -211,7 +329,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// value — re-derive the monitors so the change applies immediately,
     /// not just on the next show.
     private func handlePinToggled() {
-        if panel.isVisible { installDismissMonitors() }
+        if panel.isVisible { installDismissMonitors(isBreakCard: isShowingBreakCard) }
     }
 
     /// A random draw instead of today's deterministic pick — one-off, the
@@ -236,17 +354,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }
 
         dragStartOrigin = nil
+        isShowingBreakCard = false
         // Drawn once per show, not in FlowerCardView's body, so it doesn't
         // redraw on every body re-evaluation while the card is up.
         let toastText = GiftNotes.pick(name: name, flower: greeting?.flower?.name)
-        let hosting = NSHostingView(rootView: AnimatedCardView(
-            greeting: greeting, name: name, toastText: toastText, reduceMotion: reduceMotion, updateState: updateState,
-            onRefresh: { [weak self] in self?.showSurpriseGreeting() },
-            onClose: { [weak self] in self?.dismissPanel() },
-            onTogglePin: { [weak self] in self?.handlePinToggled() },
-            onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
-            onDragEnded: { [weak self] in self?.handleDragEnded() }
-        ))
+        let hosting = NSHostingView(rootView: AnimatedEntrance(reduceMotion: reduceMotion) {
+            FlowerCardView(greeting: greeting, name: name, toastText: toastText, updateState: updateState,
+                           onRefresh: { [weak self] in self?.showSurpriseGreeting() },
+                           onClose: { [weak self] in self?.dismissPanel() },
+                           onTogglePin: { [weak self] in self?.handlePinToggled() },
+                           onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
+                           onDragEnded: { [weak self] in self?.handleDragEnded() })
+        })
         hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
         panel.contentView = hosting
         panel.alphaValue = 1
@@ -322,19 +441,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             panel.animator().alphaValue = 0
         } completionHandler: { [weak self] in
             self?.panel.orderOut(nil)
+            self?.isShowingBreakCard = false
         }
     }
 
-    private func installDismissMonitors() {
+    /// A break card ignores outside clicks unconditionally (the pin-mode
+    /// monitor path, regardless of the user's actual pin setting) and
+    /// treats Esc as a longer snooze instead of a plain dismiss.
+    private func installDismissMonitors(isBreakCard: Bool = false) {
         removeDismissMonitors() // re-showing an already-visible panel must not stack monitors
-        if !keepsCardOnScreen {
+        if !isBreakCard && !keepsCardOnScreen {
             outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
                 self?.dismissPanel()
             }
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // Esc
-                self?.dismissPanel()
+                if isBreakCard {
+                    self?.snoozeBreakAndDismiss()
+                } else {
+                    self?.dismissPanel()
+                }
                 return nil
             }
             return event

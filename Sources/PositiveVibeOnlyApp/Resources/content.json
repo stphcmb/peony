@@ -707,5 +707,23 @@
       "meaning": "Survives wildfire; some species need fire to seed. Built for the hard reset.",
       "nameVi": "Hoa đế vương"
     }
+  ],
+  "careNudges": [
+    { "kind": "water", "title": "Water break", "body": "A full glass, not a sip." },
+    { "kind": "water", "title": "Refill time", "body": "Top up the glass on your desk, or go get one." },
+    { "kind": "eyes", "title": "Eyes off the screen", "body": "Look at something six meters away for twenty seconds." },
+    { "kind": "eyes", "title": "Blink on purpose", "body": "Screens cut your blink rate in half — a few slow blinks reset the dryness." },
+    { "kind": "stretch", "title": "Stretch it out", "body": "Reach both arms overhead and lean slowly side to side." },
+    { "kind": "stretch", "title": "Unhunch", "body": "Roll your shoulders back three times and let them drop." },
+    { "kind": "move", "title": "Stand up", "body": "Just stand. Walk to the window and back if you feel like it." },
+    { "kind": "move", "title": "Shake it off", "body": "Thirty seconds of moving however feels good — stairs, a lap, a stretch." },
+    { "kind": "tea", "title": "Tea o'clock", "body": "Put the kettle on and let it steep properly this time." },
+    { "kind": "tea", "title": "Warm cup", "body": "Coffee, tea, or water — whichever sounds good right now." },
+    { "kind": "toilet", "title": "Bio break", "body": "You've been sitting a while — go if you need to." },
+    { "kind": "toilet", "title": "Quick trip", "body": "No shame in stepping away for a minute." },
+    { "kind": "breathe", "title": "Three slow breaths", "body": "In for four counts, out for six. Repeat twice more." },
+    { "kind": "breathe", "title": "Unclench your jaw", "body": "Notice your shoulders and jaw — most people are holding tension right now." },
+    { "kind": "posture", "title": "Check your spine", "body": "Feet flat, back supported, screen at eye level. Adjust one thing." },
+    { "kind": "posture", "title": "Sit up tall", "body": "A small reset now saves a bigger ache later." }
   ]
 }

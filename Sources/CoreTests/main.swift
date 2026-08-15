@@ -174,6 +174,111 @@ check("shorter version treats missing parts as zero", VersionCheck.isNewer(lates
 check("malformed tag never claims newer", !VersionCheck.isNewer(latestTag: "not-a-version", currentVersion: "1.0.1"))
 check("empty current version never claims newer", !VersionCheck.isNewer(latestTag: "v1.0.1", currentVersion: ""))
 
+// Content decodes careNudges when present, and defaults to [] when the key
+// is missing entirely — content.json files from before this feature keep
+// loading.
+do {
+    let json = """
+    {"version":1,"quotes":[{"text":"t","author":"a"}],"compliments":["c"],
+     "prompts":[{"kind":"A","title":"T","body":"b"}],"flowers":[],
+     "careNudges":[{"kind":"water","title":"Water break","body":"Drink up."}]}
+    """.data(using: .utf8)!
+    let content = try? JSONDecoder().decode(Content.self, from: json)
+    check("decodes careNudges when present", content?.careNudges.first?.kind == "water")
+}
+
+do {
+    let json = """
+    {"version":1,"quotes":[{"text":"t","author":"a"}],"compliments":["c"],
+     "prompts":[{"kind":"A","title":"T","body":"b"}],"flowers":[]}
+    """.data(using: .utf8)!
+    let content = try? JSONDecoder().decode(Content.self, from: json)
+    check("careNudges defaults to empty when the key is missing", content?.careNudges.isEmpty == true)
+}
+
+// BreakClock: pure state machine for the break-reminder feature. `interval`
+// is a parameter (not a real clock) so these tests don't wait on wall time.
+do {
+    var clock = BreakClock()
+    _ = clock.tick(idleSeconds: 0, interval: 30)
+    _ = clock.tick(idleSeconds: 0, interval: 30)
+    _ = clock.tick(idleSeconds: 0, interval: 30)
+    check("activeSeconds accumulates across ticks", clock.activeSeconds == 90)
+}
+
+do {
+    var clock = BreakClock()
+    _ = clock.tick(idleSeconds: 0, interval: 200)
+    _ = clock.tick(idleSeconds: 300, interval: 30) // walked away for 5+ minutes
+    check("5-minute idle resets accumulated active time", clock.activeSeconds == 0)
+}
+
+do {
+    var clock = BreakClock()
+    var fireCount = 0
+    for _ in 0..<100 { // 100 * 30s = 3000s, the threshold
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { fireCount += 1 }
+    }
+    check("break fires exactly once at the 3000s threshold", fireCount == 1)
+
+    var extraFires = 0
+    for _ in 0..<10 {
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { extraFires += 1 }
+    }
+    check("due state holds without re-firing", extraFires == 0)
+}
+
+do {
+    var clock = BreakClock()
+    for _ in 0..<100 { _ = clock.tick(idleSeconds: 0, interval: 30) } // reach due
+    clock.snooze(for: 300)
+    var reFired = false
+    for _ in 0..<9 { // 9 * 30 = 270s, still short of the 300s snooze
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { reFired = true }
+    }
+    check("snooze suppresses the break before it elapses", !reFired)
+    let event = clock.tick(idleSeconds: 0, interval: 30) // 10th tick crosses 300s
+    check("snooze expiry re-fires the break", event == .breakDue)
+}
+
+do {
+    var clock = BreakClock()
+    for _ in 0..<100 { _ = clock.tick(idleSeconds: 0, interval: 30) } // due, unsnoozed
+    _ = clock.tick(idleSeconds: 300, interval: 30) // walked away while due
+    check("idle during the due state clears it", clock.activeSeconds == 0)
+    var fired = false
+    for _ in 0..<100 {
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { fired = true }
+    }
+    check("cleared due state can fire again from a fresh accumulation", fired)
+}
+
+do {
+    var clock = BreakClock()
+    for _ in 0..<100 { _ = clock.tick(idleSeconds: 0, interval: 30) } // due
+    clock.snooze(for: 300)
+    _ = clock.tick(idleSeconds: 300, interval: 30) // walked away while snoozed
+    check("idle during a snooze clears it too", clock.activeSeconds == 0)
+    var fired = false
+    for _ in 0..<9 {
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { fired = true }
+    }
+    check("no leftover snooze fires after an idle reset", !fired)
+}
+
+do {
+    var clock = BreakClock()
+    for _ in 0..<100 { _ = clock.tick(idleSeconds: 0, interval: 30) } // due
+    clock.acknowledge()
+    check("acknowledge resets active time", clock.activeSeconds == 0)
+    var fired = false
+    for _ in 0..<99 { // one short of a fresh threshold crossing
+        if clock.tick(idleSeconds: 0, interval: 30) == .breakDue { fired = true }
+    }
+    check("acknowledge doesn't fire early", !fired)
+    check("acknowledge lets a fresh break fire on schedule", clock.tick(idleSeconds: 0, interval: 30) == .breakDue)
+}
+
 if failures > 0 {
     print("\n\(failures) failure(s)")
     exit(1)

@@ -233,7 +233,9 @@ enum GiftNotes {
 
 /// A small gift-note toast: floats in above the bloom when the card
 /// appears, lingers, then fades — the moment of being handed the flowers.
-private struct GiftToast: View {
+/// Not private: BreakCardView reuses this exact component for its own,
+/// differently-worded toast pool.
+struct GiftToast: View {
     let text: String
     let tint: Color
     @Environment(\.colorScheme) private var colorScheme
