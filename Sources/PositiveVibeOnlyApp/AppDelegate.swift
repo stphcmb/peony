@@ -41,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hourlyTimer: Timer?
     private var autoFadeWork: DispatchWorkItem?
     private var lastHourSlot = -1
+    private var hotKey: HotKey?
 
     private var currentGreeting: Greeting?
     private var breakClock = BreakClock()
@@ -68,6 +69,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel = makePanel()
 
         LoginItem.applyDefaultForCurrentBundle()
+
+        // Same semantics as clicking the icon: the icon can vanish from a
+        // full menu bar, so this is a second door to the card, not a
+        // different behavior.
+        hotKey = HotKey { [weak self] in self?.togglePanel() }
 
         // Hourly bloom. A 60s check beats a 3600s timer here: after sleep a
         // long timer just drifts, while this notices the changed hour within
@@ -170,10 +176,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// now. Silently does nothing if content failed to load or ships no
     /// nudges — a missed break reminder is never worth a broken card over.
     private func showBreakCard() {
-        guard let button = statusItem.button, let buttonWindow = button.window else { return }
         guard let content = try? ContentStore.load(), let nudge = content.careNudges.randomElement() else { return }
         let flower = Selection.greeting(for: content)?.flower
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // A squeezed-out-of-the-menu-bar icon has no window to anchor a
+        // fresh show under — randomOrigin already falls back to the main
+        // screen when this is nil.
+        let screen = statusItem.button?.window?.screen ?? NSScreen.main
 
         autoFadeWork?.cancel()
         autoFadeWork = nil
@@ -194,7 +203,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         isShowingBreakCard = true
 
         if !panel.isVisible {
-            panel.setFrameOrigin(randomOrigin(on: buttonWindow.screen))
+            panel.setFrameOrigin(randomOrigin(on: screen))
         }
 
         panel.orderFrontRegardless()
@@ -341,7 +350,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showPanel(greeting overrideGreeting: Greeting? = nil) {
-        guard let button = statusItem.button, let buttonWindow = button.window else { return }
+        // A squeezed-out-of-the-menu-bar icon has no window to anchor a
+        // fresh show under — randomOrigin already falls back to the main
+        // screen when this is nil. Must not bail out here: the hotkey is
+        // exactly the rescue for a hidden icon, so it can't depend on the
+        // icon still having a window.
+        let screen = statusItem.button?.window?.screen ?? NSScreen.main
 
         // Any fresh show supersedes a pending auto-fade; the hourly tick
         // re-schedules its own right after this call.
@@ -378,7 +392,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // dragged card back under the status item — only anchor when the
         // panel is actually appearing.
         if !panel.isVisible {
-            panel.setFrameOrigin(randomOrigin(on: buttonWindow.screen))
+            panel.setFrameOrigin(randomOrigin(on: screen))
         }
 
         panel.orderFrontRegardless()
