@@ -68,11 +68,23 @@ public enum Selection {
 
     /// A one-off random greeting, for the "Surprise Me" menu action. Draws
     /// from every prompt pool (no weekday rule) and doesn't affect the
-    /// deterministic daily pick above.
-    public static func randomGreeting(for content: Content) -> Greeting? {
-        guard let quote = content.quotes.randomElement(),
-              let compliment = content.compliments.randomElement(),
-              let prompt = content.prompts.randomElement() else { return nil }
-        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: content.flowers.randomElement())
+    /// deterministic daily pick above. Each component avoids repeating
+    /// what's currently on screen (`avoiding`) — an honest die repeats
+    /// back-to-back 1-in-pool-size clicks, and a "randomize" that shows the
+    /// same TODAY twice in a row reads as broken even when it isn't.
+    public static func randomGreeting(for content: Content, avoiding current: Greeting? = nil) -> Greeting? {
+        guard let quote = draw(content.quotes, avoiding: { $0.text == current?.quote.text }),
+              let compliment = draw(content.compliments, avoiding: { $0 == current?.compliment }),
+              let prompt = draw(content.prompts, avoiding: { $0.title == current?.prompt.title }) else { return nil }
+        let flower = draw(content.flowers, avoiding: { $0.name == current?.flower?.name })
+        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
+    }
+
+    /// Random element, excluding the current one when the pool is big
+    /// enough to offer an alternative (a 1-item pool keeps repeating —
+    /// the only honest option).
+    private static func draw<T>(_ pool: [T], avoiding isCurrent: (T) -> Bool) -> T? {
+        let fresh = pool.filter { !isCurrent($0) }
+        return (fresh.isEmpty ? pool : fresh).randomElement()
     }
 }

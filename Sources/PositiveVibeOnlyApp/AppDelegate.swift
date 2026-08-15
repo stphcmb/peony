@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoFadeWork: DispatchWorkItem?
     private var lastHourSlot = -1
 
+    private var currentGreeting: Greeting?
     private var breakClock = BreakClock()
     private var breakTimer: Timer?
     // Which of the two card types is currently in the panel — the pin/close
@@ -335,7 +336,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// A random draw instead of today's deterministic pick — one-off, the
     /// next plain click shows today's card again.
     @objc private func showSurpriseGreeting() {
-        let greeting = (try? ContentStore.load()).flatMap { Selection.randomGreeting(for: $0) }
+        let greeting = (try? ContentStore.load()).flatMap { Selection.randomGreeting(for: $0, avoiding: currentGreeting) }
         showPanel(greeting: greeting)
     }
 
@@ -349,6 +350,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let content = try? ContentStore.load()
         let greeting = overrideGreeting ?? content.flatMap { Selection.greeting(for: $0) }
+        // Remembered so the next "Surprise Me" can avoid dealing the exact
+        // same quote/prompt/flower again — see Selection.randomGreeting.
+        currentGreeting = greeting
         let name = NSFullUserName().components(separatedBy: " ").first
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }

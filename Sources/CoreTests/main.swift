@@ -279,6 +279,24 @@ do {
     check("acknowledge lets a fresh break fire on schedule", clock.tick(idleSeconds: 0, interval: 30) == .breakDue)
 }
 
+// Surprise Me must never look like a no-op: a fresh draw avoids re-dealing
+// whatever is currently on screen, for every component with an alternative.
+do {
+    let content = makeContent(prompts: [("A", "T0", "b0"), ("A", "T1", "b1")])
+    let current = Selection.randomGreeting(for: content)!
+    var repeated = false
+    for _ in 0..<20 {
+        let next = Selection.randomGreeting(for: content, avoiding: current)!
+        if next.quote.text == current.quote.text
+            || next.compliment == current.compliment
+            || next.prompt.title == current.prompt.title
+            || next.flower?.name == current.flower?.name {
+            repeated = true
+        }
+    }
+    check("surprise draw avoids repeating the current card", !repeated)
+}
+
 if failures > 0 {
     print("\n\(failures) failure(s)")
     exit(1)
