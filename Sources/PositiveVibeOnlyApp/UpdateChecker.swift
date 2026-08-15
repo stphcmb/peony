@@ -16,7 +16,9 @@ final class UpdateState: ObservableObject {
 enum UpdateChecker {
     private static let repo = "stphcmb/peony"
     static let releasesPageURL = URL(string: "https://github.com/\(repo)/releases/latest")!
-    private static let apiURL = URL(string: "https://api.github.com/repos/\(repo)/releases/latest")!
+    // Internal (not private) so SelfUpdater can reuse it for its own fresh,
+    // unthrottled GET instead of duplicating the URL.
+    static let apiURL = URL(string: "https://api.github.com/repos/\(repo)/releases/latest")!
 
     private static let lastCheckKey = "UpdateChecker.lastCheckDate"
     private static let cachedLatestTagKey = "UpdateChecker.cachedLatestTag"
@@ -25,7 +27,7 @@ enum UpdateChecker {
     /// The currently running app's version, from the bundle it's running
     /// from — so this compares against what's actually installed, not a
     /// hardcoded string that could drift from reality.
-    private static var currentVersion: String {
+    static var currentVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
     }
 

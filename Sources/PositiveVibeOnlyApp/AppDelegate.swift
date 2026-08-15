@@ -181,6 +181,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
         menu.addItem(login)
+        let update = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        update.target = self
+        menu.addItem(update)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Peony", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
@@ -190,6 +193,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func toggleLoginItem() {
         LoginItem.setEnabled(!LoginItem.isEnabled)
+    }
+
+    @objc private func checkForUpdates() {
+        SelfUpdater.run()
     }
 
     /// Mirrors the card's pin button (@AppStorage writes the same key).
