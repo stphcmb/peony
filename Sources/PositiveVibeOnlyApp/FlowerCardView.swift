@@ -18,6 +18,7 @@ struct CardContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openURL) private var openURL
     @State private var hoveringControls = false
+    @State private var hoveredHint: String?
     // Shared with AppDelegate, which reads the same key to decide whether
     // clicks in other apps dismiss the card.
     @AppStorage("KeepCardOnScreen") private var isPinned = false
@@ -36,6 +37,15 @@ struct CardContentView: View {
         let hex = BloomCatalog.spec(for: greeting.flower?.name ?? "Daisy").outerColorHex
         return Color(hex: hex).opacity(isDark ? 0.38 : 0.30)
     }
+    private var bloomSpec: BloomSpec { BloomCatalog.spec(for: greeting.flower?.name ?? "Daisy") }
+    /// Petal-coloured rim: a hairline gradient stroke plus a close-in glow,
+    /// so the card meets the petals with light instead of a hard white cut.
+    private var rimGradient: LinearGradient {
+        LinearGradient(colors: [Color(hex: bloomSpec.outerColorHex).opacity(0.55),
+                                Color(hex: bloomSpec.innerColorHex).opacity(0.35)],
+                       startPoint: .top, endPoint: .bottom)
+    }
+    private var glowColor: Color { Color(hex: bloomSpec.outerColorHex).opacity(isDark ? 0.5 : 0.38) }
 
     private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
 
@@ -152,39 +162,57 @@ struct CardContentView: View {
         .background(
             arch
                 .fill(cardFill)
+                // Close-in tinted glow (no offset) melts the edge into the
+                // petals; the wider offset shadow below keeps the depth.
+                .shadow(color: glowColor, radius: 12, x: 0, y: 0)
                 .shadow(color: shadowColor, radius: 20, x: 0, y: 6)
         )
+        .overlay(
+            arch.stroke(rimGradient, lineWidth: 1.5)
+                .allowsHitTesting(false)
+        )
         // Two quiet controls in the dome, above the header text: refresh
-        // (a fresh random draw) and close. Faint until hovered.
+        // (a fresh random draw) and close. Faint until hovered. The hint
+        // line replaces `.help()` tooltips, which never appear on this
+        // borderless non-activating panel — and instant beats a 1s delay.
         .overlay(alignment: .top) {
-            HStack(spacing: 18) {
-                Button { onRefresh?() } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .frame(width: 18, height: 18)
-                        .contentShape(Rectangle())
+            VStack(spacing: 3) {
+                HStack(spacing: 18) {
+                    Button { onRefresh?() } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .frame(width: 18, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .onHover { hoveredHint = $0 ? "Another one" : nil }
+                    Button {
+                        isPinned.toggle()
+                        onTogglePin?()
+                    } label: {
+                        Image(systemName: isPinned ? "pin.fill" : "pin")
+                            .frame(width: 18, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .onHover { hoveredHint = $0 ? (isPinned ? "Let it close on its own" : "Keep on screen") : nil }
+                    Button { onClose?() } label: {
+                        Image(systemName: "xmark")
+                            .frame(width: 18, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .onHover { hoveredHint = $0 ? "Close" : nil }
                 }
-                .help("Another one")
-                Button {
-                    isPinned.toggle()
-                    onTogglePin?()
-                } label: {
-                    Image(systemName: isPinned ? "pin.fill" : "pin")
-                        .frame(width: 18, height: 18)
-                        .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .font(.system(size: 10.5, weight: .semibold))
+                if let hoveredHint {
+                    Text(hoveredHint)
+                        .font(.custom("Karla", size: 9))
+                        .tracking(0.4)
+                        .transition(.opacity)
                 }
-                .help(isPinned ? "Let it close on its own" : "Keep on screen")
-                Button { onClose?() } label: {
-                    Image(systemName: "xmark")
-                        .frame(width: 18, height: 18)
-                        .contentShape(Rectangle())
-                }
-                .help("Close")
             }
-            .buttonStyle(.plain)
-            .font(.system(size: 10.5, weight: .semibold))
             .foregroundColor(secondary)
             .opacity(hoveringControls ? 1 : 0.8)
             .animation(.easeOut(duration: 0.15), value: hoveringControls)
+            .animation(.easeOut(duration: 0.12), value: hoveredHint)
             .onHover { hoveringControls = $0 }
             .padding(.top, 14)
         }

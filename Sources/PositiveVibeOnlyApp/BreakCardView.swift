@@ -27,6 +27,7 @@ private struct BreakCardContentView: View {
     var onSnooze: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
     @Environment(\.colorScheme) private var colorScheme
+    @State private var hoveringClose = false
 
     private var colors: CardTextColors {
         BloomCatalog.textColors(for: flower?.name ?? "Daisy")
@@ -42,6 +43,16 @@ private struct BreakCardContentView: View {
     private var buttonTint: Color {
         Color(hex: BloomCatalog.spec(for: flower?.name ?? "Daisy").outerColorHex)
     }
+    /// Same petal-coloured rim treatment as the greeting card — hairline
+    /// gradient stroke plus close-in glow, so the edge meets the petals
+    /// with light instead of a hard white cut.
+    private var bloomSpec: BloomSpec { BloomCatalog.spec(for: flower?.name ?? "Daisy") }
+    private var rimGradient: LinearGradient {
+        LinearGradient(colors: [Color(hex: bloomSpec.outerColorHex).opacity(0.55),
+                                Color(hex: bloomSpec.innerColorHex).opacity(0.35)],
+                       startPoint: .top, endPoint: .bottom)
+    }
+    private var glowColor: Color { Color(hex: bloomSpec.outerColorHex).opacity(isDark ? 0.5 : 0.38) }
 
     private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
 
@@ -111,21 +122,36 @@ private struct BreakCardContentView: View {
         .background(
             arch
                 .fill(cardFill)
+                .shadow(color: glowColor, radius: 12, x: 0, y: 0)
                 .shadow(color: buttonTint.opacity(isDark ? 0.35 : 0.16), radius: 20, x: 0, y: 6)
+        )
+        .overlay(
+            arch.stroke(rimGradient, lineWidth: 1.5)
+                .allowsHitTesting(false)
         )
         // No ↺/pin here — a break nudge isn't something to refresh or pin.
         // × behaves like Esc (the caller treats them identically), so it
         // gets the same quiet styling the greeting card's controls use.
         .overlay(alignment: .top) {
-            Button { onClose?() } label: {
-                Image(systemName: "xmark")
-                    .frame(width: 18, height: 18)
-                    .contentShape(Rectangle())
+            VStack(spacing: 3) {
+                Button { onClose?() } label: {
+                    Image(systemName: "xmark")
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10.5, weight: .semibold))
+                .onHover { hoveringClose = $0 }
+                if hoveringClose {
+                    Text("Back in 10 minutes")
+                        .font(.custom("Karla", size: 9))
+                        .tracking(0.4)
+                        .transition(.opacity)
+                }
             }
-            .buttonStyle(.plain)
-            .font(.system(size: 10.5, weight: .semibold))
             .foregroundColor(secondary)
-            .opacity(0.8)
+            .opacity(hoveringClose ? 1 : 0.8)
+            .animation(.easeOut(duration: 0.12), value: hoveringClose)
             .padding(.top, 14)
         }
     }
