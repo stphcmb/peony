@@ -28,13 +28,34 @@ private struct RingView: View {
 /// tips reaching to 300pt from centre, per the approved handoff spec.
 struct BloomView: View {
     let spec: BloomSpec
+    // rim, outer, inner — indices match the ZStack layers below, so each
+    // ring can bloom in on its own stagger.
+    @State private var shown = [false, false, false]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
             RingView(ring: spec.outer.rim, color: Color(hex: BloomCatalog.rimColorHex))
+                .scaleEffect(shown[0] ? 1 : 0.3)
+                .opacity(shown[0] ? 1 : 0)
             RingView(ring: spec.outer, color: Color(hex: spec.outerColorHex))
+                .scaleEffect(shown[1] ? 1 : 0.3)
+                .opacity(shown[1] ? 1 : 0)
             RingView(ring: spec.inner, color: Color(hex: spec.innerColorHex))
+                .scaleEffect(shown[2] ? 1 : 0.3)
+                .opacity(shown[2] ? 1 : 0)
         }
         .frame(width: 640, height: 640)
+        .onAppear {
+            if reduceMotion {
+                shown = [true, true, true]
+            } else {
+                for i in shown.indices {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(Double(i) * 0.08)) {
+                        shown[i] = true
+                    }
+                }
+            }
+        }
     }
 }

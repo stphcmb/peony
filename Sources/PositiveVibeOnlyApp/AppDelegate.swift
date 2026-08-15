@@ -9,6 +9,7 @@ import PositiveVibeOnlyCore
 private struct AnimatedCardView: View {
     let greeting: Greeting?
     let name: String?
+    let toastText: String
     let reduceMotion: Bool
     @ObservedObject var updateState: UpdateState
     var onRefresh: (() -> Void)? = nil
@@ -19,15 +20,18 @@ private struct AnimatedCardView: View {
     @State private var isVisible = false
 
     var body: some View {
-        FlowerCardView(greeting: greeting, name: name, updateState: updateState,
+        FlowerCardView(greeting: greeting, name: name, toastText: toastText, updateState: updateState,
                        onRefresh: onRefresh, onClose: onClose, onTogglePin: onTogglePin,
                        onDragChanged: onDragChanged, onDragEnded: onDragEnded)
             .opacity(isVisible ? 1 : 0)
-            .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.94))
+            .animation(.easeOut(duration: reduceMotion ? 0.12 : 0.18), value: isVisible)
+            // A separate .animation() boundary so the pop (scale+rotation)
+            // can run on its own spring curve instead of the fade's easeOut.
+            .scaleEffect(reduceMotion ? 1 : (isVisible ? 1 : 0.4))
+            .rotationEffect(reduceMotion ? .zero : .degrees(isVisible ? 0 : -5))
+            .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.65), value: isVisible)
             .onAppear {
-                withAnimation(.easeOut(duration: reduceMotion ? 0.12 : 0.18)) {
-                    isVisible = true
-                }
+                isVisible = true
             }
     }
 }
@@ -225,8 +229,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UpdateChecker.checkIfDue { [weak self] in self?.updateState.isAvailable = true }
 
         dragStartOrigin = nil
+        // Drawn once per show, not in FlowerCardView's body, so it doesn't
+        // redraw on every body re-evaluation while the card is up.
+        let toastText = GiftNotes.pick(name: name, flower: greeting?.flower?.name)
         let hosting = NSHostingView(rootView: AnimatedCardView(
-            greeting: greeting, name: name, reduceMotion: reduceMotion, updateState: updateState,
+            greeting: greeting, name: name, toastText: toastText, reduceMotion: reduceMotion, updateState: updateState,
             onRefresh: { [weak self] in self?.showSurpriseGreeting() },
             onClose: { [weak self] in self?.dismissPanel() },
             onTogglePin: { [weak self] in self?.handlePinToggled() },

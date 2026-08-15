@@ -208,31 +208,61 @@ struct CardContentView: View {
     }
 }
 
+/// Affectionate gift-note lines for the toast — one drawn at random per
+/// show, so the hand-off never reads the same twice in a row.
+enum GiftNotes {
+    static func pick(name: String?, flower: String?) -> String {
+        let flowerWord = flower?.lowercased() ?? "bloom"
+        let dear = (name?.isEmpty == false ? name! : "beauty")
+        return [
+            "Hey beauty, these are for you 💐",
+            // Singular/mass forms only: "+s" or "a \(flowerWord)" breaks on
+            // names like Iris ("irises", "a iris"), so no line relies on either.
+            "Psst, \(dear) — fresh \(flowerWord), just picked 🌷",
+            "Someone thinks you're wonderful 🌸",
+            "Special delivery for the loveliest \(dear)! 💐",
+            "You looked like you needed flowers today 🌼",
+            "Ta-da! This \(flowerWord) is for you ✨",
+            "Hand-picked this morning, just for \(dear) 🌷",
+            "A little \(flowerWord) to brighten your hour 🌸",
+            "For you — no occasion needed 💮",
+            "Surprise! Flowers for \(dear) 💐",
+        ].randomElement()!
+    }
+}
+
 /// A small gift-note toast: floats in above the bloom when the card
 /// appears, lingers, then fades — the moment of being handed the flowers.
 private struct GiftToast: View {
     let text: String
+    let tint: Color
     @Environment(\.colorScheme) private var colorScheme
     @State private var visible = false
 
     var body: some View {
         Text(text)
-            .font(.custom("Karla", size: 12.5))
+            .font(.custom("Fraunces", size: 15))
+            .italic()
             .foregroundColor(Color(hex: colorScheme == .dark ? "#F2E4D8" : "#6B4A3A"))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
             .background(
                 Capsule()
                     .fill(Color(hex: colorScheme == .dark ? "#241A12" : "#FFFDFA"))
                     .shadow(color: .black.opacity(0.14), radius: 10, x: 0, y: 3)
             )
+            .overlay(
+                Capsule().strokeBorder(tint.opacity(0.55), lineWidth: 1)
+            )
             .opacity(visible ? 1 : 0)
-            .offset(y: visible ? 0 : -10)
+            .scaleEffect(visible ? 1 : 0.6)
+            .offset(y: visible ? 0 : -14)
+            .rotationEffect(.degrees(visible ? 0 : -3))
             .onAppear {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4)) {
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.6).delay(0.55)) {
                     visible = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
                     withAnimation(.easeIn(duration: 0.5)) { visible = false }
                 }
             }
@@ -244,6 +274,7 @@ private struct GiftToast: View {
 struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
+    let toastText: String
     @ObservedObject var updateState: UpdateState
     var onRefresh: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
@@ -251,9 +282,11 @@ struct FlowerCardView: View {
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
 
-    private var toastText: String {
-        guard let flower = greeting?.flower else { return "Flowers for you 🌸" }
-        return "A \(flower.name.lowercased()) for you 🌸"
+    // Same pattern as CardContentView.headerTint, minus the opacity — the
+    // toast border draws its own translucency.
+    private var toastTint: Color {
+        let hex = BloomCatalog.spec(for: greeting?.flower?.name ?? "Daisy").outerColorHex
+        return Color(hex: hex)
     }
 
     var body: some View {
@@ -275,7 +308,7 @@ struct FlowerCardView: View {
         .frame(width: 640, height: 640)
         .overlay(alignment: .top) {
             if greeting != nil {
-                GiftToast(text: toastText)
+                GiftToast(text: toastText, tint: toastTint)
                     .padding(.top, 56)
                     .allowsHitTesting(false)
                     // New identity per card so a refresh re-runs the toast —
