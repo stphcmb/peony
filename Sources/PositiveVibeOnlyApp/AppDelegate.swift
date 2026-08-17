@@ -51,6 +51,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var isShowingBreakCard = false
     private var lastBreakFireDate: Date?
     private let breakTickInterval: TimeInterval = 30
+    /// Six hours: often enough that a release reaches everyone the same
+    /// day, rare enough that a laptop lid opened for five minutes doesn't
+    /// spend that time talking to GitHub.
+    private static let autoUpdateInterval: TimeInterval = 6 * 60 * 60
 
     private let scaleState = CardScaleState()
     private let panelSize: CGFloat = CardScaleState.baseSize
@@ -85,10 +89,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hourly bloom. A 60s check beats a 3600s timer here: after sleep a
         // long timer just drifts, while this notices the changed hour within
         // a minute of waking.
-        UserDefaults.standard.register(defaults: ["HourlyBloom": true, "BreakReminders": true])
+        UserDefaults.standard.register(defaults: [
+            "HourlyBloom": true, "BreakReminders": true, "AutoUpdate": true,
+        ])
         lastHourSlot = Self.currentHourSlot()
         let timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.hourlyTick() }
+            Task { @MainActor in
+                self?.hourlyTick()
+                self?.autoUpdateTick()
+            }
         }
         timer.tolerance = 5
         hourlyTimer = timer
@@ -133,6 +142,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             showPanel()
             scheduleAutoFade()
         }
+    }
+
+    private var autoUpdateEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "AutoUpdate")
+    }
+
+    @objc private func toggleAutoUpdate() {
+        UserDefaults.standard.set(!autoUpdateEnabled, forKey: "AutoUpdate")
+    }
+
+    /// Keeps everyone on the newest Peony without anyone having to know
+    /// there is a newer Peony. Most people who run this will never open the
+    /// right-click menu, so an update that waits to be asked for is an
+    /// update they never get.
+    ///
+    /// Never while the card is on screen: installing ends in a relaunch, and
+    /// a card vanishing mid-read is exactly the interruption this app exists
+    /// not to be. Off-screen, the relaunch is invisible — the menu bar icon
+    /// blinks and that's all.
+    private func autoUpdateTick() {
+        guard autoUpdateEnabled, !panel.isVisible else { return }
+        let defaults = UserDefaults.standard
+        let key = "AutoUpdate.lastCheck"
+        if let last = defaults.object(forKey: key) as? Date,
+           Date().timeIntervalSince(last) < Self.autoUpdateInterval { return }
+        defaults.set(Date(), forKey: key)
+        SelfUpdater.runInBackground()
     }
 
     private var breakRemindersEnabled: Bool {
@@ -321,6 +357,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         login.target = self
         login.state = LoginItem.isEnabled ? .on : .off
         menu.addItem(login)
+        let autoUpdate = NSMenuItem(title: "Update Automatically", action: #selector(toggleAutoUpdate), keyEquivalent: "")
+        autoUpdate.target = self
+        autoUpdate.state = autoUpdateEnabled ? .on : .off
+        menu.addItem(autoUpdate)
         let update = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         update.target = self
         menu.addItem(update)

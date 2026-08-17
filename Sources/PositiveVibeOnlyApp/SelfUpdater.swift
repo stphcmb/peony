@@ -13,6 +13,8 @@ enum SelfUpdater {
     private static let assetName = "Peony.zip"
     private static let installedAppPath = "/Applications/Peony.app"
 
+    private static let attemptedTagKey = "SelfUpdater.attemptedTag"
+
     static func run() {
         var request = URLRequest(url: UpdateChecker.apiURL)
         request.timeoutInterval = 10
@@ -21,6 +23,52 @@ enum SelfUpdater {
                 handleCheckResponse(data: data)
             }
         }.resume()
+    }
+
+    /// The unattended path, for people who will never open a menu: the same
+    /// download, swap and relaunch, with every dialog removed. Called on a
+    /// schedule by AppDelegate, which only calls it while the card is off
+    /// screen — the install ends in a relaunch.
+    static func runInBackground() {
+        var request = URLRequest(url: UpdateChecker.apiURL)
+        request.timeoutInterval = 10
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            DispatchQueue.main.async {
+                handleBackgroundResponse(data: data)
+            }
+        }.resume()
+    }
+
+    /// Every failure here gives up quietly. Nobody asked for this check, so
+    /// nobody should get an error box about it — the card's "Update
+    /// available" banner and the menu item stay as the visible fallback.
+    private static func handleBackgroundResponse(data: Data?) {
+        guard let data,
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let tag = json["tag_name"] as? String,
+              VersionCheck.isNewer(latestTag: tag, currentVersion: UpdateChecker.currentVersion),
+              // A dev build isn't at the path we'd overwrite. The menu item
+              // opens the releases page here; unattended, it does nothing.
+              Bundle.main.bundlePath == installedAppPath,
+              let downloadURL = downloadURL(in: json) else { return }
+
+        // One attempt per release. A swap that fails silently would leave
+        // the same tag looking newer at every check, and an update loop that
+        // relaunches the app every few hours is far worse than a missed
+        // update. A genuinely newer release gets its own attempt.
+        let defaults = UserDefaults.standard
+        guard defaults.string(forKey: attemptedTagKey) != tag else { return }
+        defaults.set(tag, forKey: attemptedTagKey)
+
+        downloadAndInstall(from: downloadURL, silent: true)
+    }
+
+    private static func downloadURL(in json: [String: Any]) -> URL? {
+        let assets = json["assets"] as? [[String: Any]] ?? []
+        return assets
+            .first { ($0["name"] as? String) == assetName }
+            .flatMap { $0["browser_download_url"] as? String }
+            .flatMap(URL.init(string:))
     }
 
     private static func handleCheckResponse(data: Data?) {
@@ -46,13 +94,7 @@ enum SelfUpdater {
             return
         }
 
-        let assets = json["assets"] as? [[String: Any]] ?? []
-        let downloadURL = assets
-            .first { ($0["name"] as? String) == assetName }
-            .flatMap { $0["browser_download_url"] as? String }
-            .flatMap(URL.init(string:))
-
-        presentUpdateAvailable(tag: tag, current: current, downloadURL: downloadURL)
+        presentUpdateAvailable(tag: tag, current: current, downloadURL: downloadURL(in: json))
     }
 
     // MARK: - Alerts
@@ -85,7 +127,7 @@ enum SelfUpdater {
             presentFailure(reason: "Couldn't find \(assetName) in the release's assets.")
             return
         }
-        downloadAndInstall(from: downloadURL)
+        downloadAndInstall(from: downloadURL, silent: false)
     }
 
     private static func presentFailure(reason: String) {
@@ -102,12 +144,15 @@ enum SelfUpdater {
 
     // MARK: - Download, extract, swap, relaunch
 
-    private static func downloadAndInstall(from url: URL) {
+    /// `silent` is the whole difference between the menu item and the
+    /// background updater: same mechanics, but unattended every failure
+    /// returns instead of putting a dialog on someone's screen.
+    private static func downloadAndInstall(from url: URL, silent: Bool) {
         let workDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         do {
             try FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
         } catch {
-            presentFailure(reason: "Couldn't create a temporary folder: \(error.localizedDescription)")
+            if !silent { presentFailure(reason: "Couldn't create a temporary folder: \(error.localizedDescription)") }
             return
         }
 
@@ -115,7 +160,9 @@ enum SelfUpdater {
         URLSession.shared.downloadTask(with: url) { tempURL, _, error in
             DispatchQueue.main.async {
                 guard let tempURL, error == nil else {
-                    presentFailure(reason: "Couldn't download the update: \(error?.localizedDescription ?? "unknown error").")
+                    if !silent {
+                        presentFailure(reason: "Couldn't download the update: \(error?.localizedDescription ?? "unknown error").")
+                    }
                     return
                 }
                 do {
@@ -123,26 +170,26 @@ enum SelfUpdater {
                     // returns — move it out before touching it further.
                     try FileManager.default.moveItem(at: tempURL, to: zipPath)
                 } catch {
-                    presentFailure(reason: "Couldn't save the downloaded update: \(error.localizedDescription)")
+                    if !silent { presentFailure(reason: "Couldn't save the downloaded update: \(error.localizedDescription)") }
                     return
                 }
-                extractAndSwap(zipPath: zipPath, workDir: workDir)
+                extractAndSwap(zipPath: zipPath, workDir: workDir, silent: silent)
             }
         }.resume()
     }
 
-    private static func extractAndSwap(zipPath: URL, workDir: URL) {
+    private static func extractAndSwap(zipPath: URL, workDir: URL, silent: Bool) {
         do {
             // ditto (not Foundation's zip-less APIs) so the app bundle's
             // symlinks and permissions survive extraction.
             try runProcess("/usr/bin/ditto", ["-xk", zipPath.path, workDir.path])
         } catch {
-            presentFailure(reason: "Couldn't unpack the update: \(error.localizedDescription)")
+            if !silent { presentFailure(reason: "Couldn't unpack the update: \(error.localizedDescription)") }
             return
         }
 
         guard let newApp = locateApp(in: workDir) else {
-            presentFailure(reason: "The downloaded update didn't contain Peony.app.")
+            if !silent { presentFailure(reason: "The downloaded update didn't contain Peony.app.") }
             return
         }
 
@@ -156,7 +203,9 @@ enum SelfUpdater {
             }
             try runProcess("/usr/bin/ditto", [newApp.path, installedAppPath])
         } catch {
-            presentFailure(reason: "Couldn't install the update — please reinstall from the releases page. (\(error.localizedDescription))")
+            if !silent {
+                presentFailure(reason: "Couldn't install the update — please reinstall from the releases page. (\(error.localizedDescription))")
+            }
             return
         }
 

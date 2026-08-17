@@ -136,11 +136,17 @@ shape rather than crashing.
 **Your name.** Read from your macOS account automatically. No setup.
 
 **Nothing is stored, ever, except a version number.** No history, no record
-of what you were shown, no analytics. The one exception: once a day, the app
-checks GitHub for the latest release tag, so it can show a small "Update
-available" link if you're behind — that check, its timestamp, and your 📌
-pin and Bloom Every Hour preferences are the only things saved locally
-(`UserDefaults`), and the check is the only network call the app makes. Miss it entirely and nothing breaks; it just won't nudge you.
+of what you were shown, no analytics. The only things saved locally
+(`UserDefaults`) are your preferences — card size, 📌 pin, Bloom Every Hour,
+Break Reminders — plus the version it last saw and when it last looked.
+
+**It keeps itself up to date.** A few times a day Peony asks GitHub what the
+newest release is. If you're behind, it downloads it and swaps itself over
+while the card is closed, so the newest version is simply there next time you
+look — no dialog, no zip, nothing to click. Those checks and downloads are the
+only network calls the app makes; offline, it quietly skips them and nothing
+breaks. Prefer to decide yourself? Right-click 🌸 → **Update Automatically**
+turns it off, and **Check for Updates…** stays there for when you want it.
 
 **Unsigned, on purpose.** This isn't in the Mac App Store and isn't signed
 with a paid Apple Developer account — that costs money and review time for
