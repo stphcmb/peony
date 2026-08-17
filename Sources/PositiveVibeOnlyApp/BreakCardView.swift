@@ -180,11 +180,14 @@ private struct BreakCardContentView: View {
 
 /// The break card's full popover content: same bloom-behind-arch-card
 /// composition, same 640x640 frame, as FlowerCardView — the panel doesn't
-/// need to change shape between a greeting and a break nudge.
+/// need to change shape between a greeting and a break nudge. It follows
+/// the same card scale for that reason: the panel is shared, so a break
+/// card left at 1x would sit mis-sized inside a resized panel.
 struct BreakCardView: View {
     let nudge: CareNudge
     let flower: Flower?
     let toastText: String
+    @ObservedObject var scaleState: CardScaleState
     var onTookIt: (() -> Void)? = nil
     var onSnooze: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
@@ -198,11 +201,12 @@ struct BreakCardView: View {
             BloomView(spec: BloomCatalog.spec(for: flower?.name ?? "Daisy"))
             BreakCardContentView(nudge: nudge, flower: flower, onTookIt: onTookIt, onSnooze: onSnooze, onClose: onClose)
         }
-        .frame(width: 640, height: 640)
+        .frame(width: CardScaleState.baseSize, height: CardScaleState.baseSize)
         .overlay(alignment: .top) {
             GiftToast(text: toastText, tint: toastTint)
                 .padding(.top, 56)
                 .allowsHitTesting(false)
         }
+        .cardScaled(scaleState.scale)
     }
 }

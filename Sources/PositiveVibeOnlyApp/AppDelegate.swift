@@ -52,10 +52,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastBreakFireDate: Date?
     private let breakTickInterval: TimeInterval = 30
 
-    private let panelSize: CGFloat = 640
+    private let scaleState = CardScaleState()
+    private let panelSize: CGFloat = CardScaleState.baseSize
     /// Petal tips reach 300pt from centre, per spec — the rest of the 640pt
     /// frame is transparent margin, so only this much has to stay on screen.
     private let bloomRadius: CGFloat = 300
+    /// What the panel actually measures right now: the authored size times
+    /// the user's card scale.
+    private var scaledPanelSize: CGFloat { panelSize * scaleState.scale }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -67,6 +71,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
 
         panel = makePanel()
+        // SwiftUI can resize its own content but not the window hosting
+        // it, so a size change has to come back out here.
+        scaleState.onChange = { [weak self] _ in self?.resizePanelToScale() }
 
         LoginItem.applyDefaultForCurrentBundle()
 
@@ -191,13 +198,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let toastText = BreakToasts.pick()
         let hosting = NSHostingView(rootView: AnimatedEntrance(reduceMotion: reduceMotion) {
             BreakCardView(
-                nudge: nudge, flower: flower, toastText: toastText,
+                nudge: nudge, flower: flower, toastText: toastText, scaleState: scaleState,
                 onTookIt: { [weak self] in self?.acknowledgeBreakAndDismiss() },
                 onSnooze: { [weak self] in self?.snoozeBreakShortAndDismiss() },
                 onClose: { [weak self] in self?.snoozeBreakAndDismiss() }
             )
         })
-        hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
+        hosting.frame = NSRect(x: 0, y: 0, width: scaledPanelSize, height: scaledPanelSize)
+        // So changing size only has to resize the panel — the hosting view
+        // follows it instead of being re-framed separately.
+        hosting.autoresizingMask = [.width, .height]
         panel.contentView = hosting
         panel.alphaValue = 1
         isShowingBreakCard = true
@@ -249,7 +259,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// hide the bloom's die-cut silhouette.
     private func makePanel() -> NSPanel {
         let p = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: panelSize, height: panelSize),
+            contentRect: NSRect(x: 0, y: 0, width: scaledPanelSize, height: scaledPanelSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -297,6 +307,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         surprise.target = self
         menu.addItem(surprise)
         menu.addItem(.separator())
+        menu.addItem(cardSizeMenuItem())
+        menu.addItem(.separator())
         let hourly = NSMenuItem(title: "Bloom Every Hour", action: #selector(toggleHourlyBloom), keyEquivalent: "")
         hourly.target = self
         hourly.state = hourlyBloomEnabled ? .on : .off
@@ -317,6 +329,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
+    }
+
+    /// Three named sizes — the whole of resizing. A borderless card has no
+    /// window frame to drag, and every gesture tried in its place (corner
+    /// grip, edge drag) read as fiddly on something meant to be glanced at,
+    /// so the size is a choice made once in the menu, not a manipulation.
+    private func cardSizeMenuItem() -> NSMenuItem {
+        let sizes: [(String, CGFloat)] = [("Small", 0.8), ("Medium", 1.0), ("Large", 1.3)]
+        let submenu = NSMenu()
+        for (title, value) in sizes {
+            let item = NSMenuItem(title: title, action: #selector(setCardSize(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = Double(value)
+            // Tolerant compare: these are floats round-tripped through
+            // UserDefaults, not identities.
+            item.state = abs(scaleState.scale - value) < 0.02 ? .on : .off
+            submenu.addItem(item)
+        }
+        let parent = NSMenuItem(title: "Card Size", action: nil, keyEquivalent: "")
+        parent.submenu = submenu
+        return parent
+    }
+
+    @objc private func setCardSize(_ sender: NSMenuItem) {
+        guard let value = sender.representedObject as? Double else { return }
+        scaleState.scale = CardScaleState.clamped(CGFloat(value))
     }
 
     @objc private func toggleLoginItem() {
@@ -378,13 +416,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let toastText = GiftNotes.pick(name: name, flower: greeting?.flower?.name)
         let hosting = NSHostingView(rootView: AnimatedEntrance(reduceMotion: reduceMotion) {
             FlowerCardView(greeting: greeting, name: name, toastText: toastText, updateState: updateState,
+                           scaleState: scaleState,
                            onRefresh: { [weak self] in self?.showSurpriseGreeting() },
                            onClose: { [weak self] in self?.dismissPanel() },
                            onTogglePin: { [weak self] in self?.handlePinToggled() },
                            onDragChanged: { [weak self] translation in self?.handleDragChanged(translation) },
                            onDragEnded: { [weak self] in self?.handleDragEnded() })
         })
-        hosting.frame = NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
+        hosting.frame = NSRect(x: 0, y: 0, width: scaledPanelSize, height: scaledPanelSize)
+        // So changing size only has to resize the panel — the hosting view
+        // follows it instead of being re-framed separately.
+        hosting.autoresizingMask = [.width, .height]
         panel.contentView = hosting
         panel.alphaValue = 1
 
@@ -407,8 +449,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// redrawn — pure uniform picks cluster often enough to read as "stuck".
     private func randomOrigin(on screen: NSScreen?) -> NSPoint {
         let frame = (screen ?? NSScreen.main)?.visibleFrame
-            ?? NSRect(x: 0, y: 0, width: panelSize, height: panelSize)
-        let inset = bloomRadius + 12
+            ?? NSRect(x: 0, y: 0, width: scaledPanelSize, height: scaledPanelSize)
+        let inset = bloomRadius * scaleState.scale + 12
         let xRange = (frame.minX + inset)...(max(frame.maxX - inset, frame.minX + inset))
         let yRange = (frame.minY + inset)...(max(frame.maxY - inset, frame.minY + inset))
         // A screen too small to move around in leaves both ranges empty —
@@ -422,7 +464,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             center = NSPoint(x: .random(in: xRange), y: .random(in: yRange))
         }
         lastCenter = center
-        return NSPoint(x: center.x - panelSize / 2, y: center.y - panelSize / 2)
+        return NSPoint(x: center.x - scaledPanelSize / 2, y: center.y - scaledPanelSize / 2)
+    }
+
+    /// Grows and shrinks the panel around the card's own centre, so a Card
+    /// Size pick never walks a card the user has already dragged somewhere
+    /// across the screen.
+    private func resizePanelToScale() {
+        let size = scaledPanelSize
+        let center = NSPoint(x: panel.frame.midX, y: panel.frame.midY)
+        panel.setFrame(NSRect(x: center.x - size / 2, y: center.y - size / 2,
+                              width: size, height: size),
+                       display: true)
     }
 
     /// Drives dragging manually instead of `isMovableByWindowBackground`,

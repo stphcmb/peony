@@ -304,17 +304,20 @@ struct GiftToast: View {
 }
 
 /// The full popover content: today's bloom behind, the arch card centred
-/// on top, in a fixed 640x640 frame per the approved handoff spec.
+/// on top, authored in a 640x640 frame per the approved handoff spec and
+/// scaled as a whole by `scaleState` (the Card Size menu).
 struct FlowerCardView: View {
     let greeting: Greeting?
     let name: String?
     let toastText: String
     @ObservedObject var updateState: UpdateState
+    @ObservedObject var scaleState: CardScaleState
     var onRefresh: (() -> Void)? = nil
     var onClose: (() -> Void)? = nil
     var onTogglePin: (() -> Void)? = nil
     var onDragChanged: ((CGSize) -> Void)? = nil
     var onDragEnded: (() -> Void)? = nil
+
 
     // Same pattern as CardContentView.headerTint, minus the opacity — the
     // toast border draws its own translucency.
@@ -339,7 +342,7 @@ struct FlowerCardView: View {
                     .background(Color(NSColor.windowBackgroundColor), in: RoundedRectangle(cornerRadius: 16))
             }
         }
-        .frame(width: 640, height: 640)
+        .frame(width: CardScaleState.baseSize, height: CardScaleState.baseSize)
         .overlay(alignment: .top) {
             if greeting != nil {
                 GiftToast(text: toastText, tint: toastTint)
@@ -350,6 +353,12 @@ struct FlowerCardView: View {
                     .id(toastText + (greeting?.quote.text ?? ""))
             }
         }
+        .cardScaled(scaleState.scale)
+        // The drag sits outside .cardScaled deliberately: attached inside,
+        // it would report translation in the card's own (scaled) coordinate
+        // space, so a dragged card would lag or outrun the cursor at any
+        // size but Medium.
+        //
         // .simultaneousGesture (not .gesture) so this coexists with the
         // "Update available" button inside the card — a quick tap still
         // reaches the button; only an actual drag moves the window.
