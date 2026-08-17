@@ -49,6 +49,10 @@ struct CardContentView: View {
 
     private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
 
+    // Must track the .padding(.horizontal:) values on the two sections below.
+    private let headerTextWidth = CardMetrics.textWidth(padding: 24)
+    private let bodyTextWidth = CardMetrics.textWidth(padding: 28)
+
     /// Small-caps section label, the mock's letterspaced style.
     private func capsText(_ s: String) -> Text {
         Text(s.uppercased())
@@ -86,7 +90,7 @@ struct CardContentView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.55)
                         .allowsTightening(true)
-                    Text(flower.meaning)
+                    Text(flower.meaning.noWidow(font: CardFont.fraunces(13.5), width: headerTextWidth))
                         .font(.custom("Fraunces", size: 13.5))
                         .italic()
                         .foregroundColor(secondary)
@@ -103,7 +107,7 @@ struct CardContentView: View {
             // ── Body ──
             VStack(spacing: 17) {
                 VStack(spacing: 5) {
-                    Text("\u{201C}\(greeting.quote.text)\u{201D}")
+                    Text("\u{201C}\(greeting.quote.text)\u{201D}".noWidow(font: CardFont.fraunces(19), width: bodyTextWidth))
                         .font(.custom("Fraunces", size: 19))
                         .italic()
                         .fontWeight(.semibold)
@@ -114,7 +118,7 @@ struct CardContentView: View {
                         .foregroundColor(muted)
                 }
 
-                Text(greeting.compliment)
+                Text(greeting.compliment.noWidow(font: CardFont.karla(13.5), width: bodyTextWidth))
                     .font(.custom("Karla", size: 13.5))
                     .tracking(0.2)
                     .foregroundColor(primary)
@@ -124,12 +128,12 @@ struct CardContentView: View {
                 VStack(spacing: 5) {
                     capsText("Today")
                         .foregroundColor(secondary)
-                    Text(greeting.prompt.title)
+                    Text(greeting.prompt.title.noWidow(font: CardFont.karla(12.5), width: bodyTextWidth))
                         .font(.custom("Karla", size: 12.5))
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2.5)
-                    Text(greeting.prompt.body)
+                    Text(greeting.prompt.body.noWidow(font: CardFont.karla(11.5), width: bodyTextWidth))
                         .font(.custom("Karla", size: 11.5))
                         .foregroundColor(muted)
                         .multilineTextAlignment(.center)
@@ -156,7 +160,7 @@ struct CardContentView: View {
             .padding(.horizontal, 28)
             .padding(.bottom, 36)
         }
-        .frame(width: 258)
+        .frame(width: CardMetrics.width)
         .fixedSize(horizontal: false, vertical: true)
         .clipShape(arch)
         .background(

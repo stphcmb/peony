@@ -63,6 +63,9 @@ private struct BreakCardContentView: View {
             .tracking(2.2)
     }
 
+    // Must track the .padding(.horizontal:) on the body section below.
+    private let bodyTextWidth = CardMetrics.textWidth(padding: 26)
+
     var body: some View {
         VStack(spacing: 0) {
             // ── Header band ── same flower name + Vietnamese annotation as
@@ -94,13 +97,13 @@ private struct BreakCardContentView: View {
             // ── Body: the nudge, where the quote sits on the greeting card ──
             VStack(spacing: 22) {
                 VStack(spacing: 8) {
-                    Text(nudge.title)
+                    Text(nudge.title.noWidow(font: CardFont.fraunces(22), width: bodyTextWidth))
                         .font(.custom("Fraunces", size: 22))
                         .fontWeight(.semibold)
                         .foregroundColor(primary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
-                    Text(nudge.body)
+                    Text(nudge.body.noWidow(font: CardFont.karla(13.5), width: bodyTextWidth))
                         .font(.custom("Karla", size: 13.5))
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
@@ -116,7 +119,7 @@ private struct BreakCardContentView: View {
             .padding(.horizontal, 26)
             .padding(.bottom, 40)
         }
-        .frame(width: 258)
+        .frame(width: CardMetrics.width)
         .fixedSize(horizontal: false, vertical: true)
         .clipShape(arch)
         .background(
