@@ -34,10 +34,3 @@ extension String {
     }
 }
 
-/// Text widths inside the arch, derived from the card width and the same
-/// horizontal padding the layouts apply — widow-guarding has to measure
-/// against the width the text will actually wrap at.
-enum CardMetrics {
-    static let width: CGFloat = 258
-    static func textWidth(padding: CGFloat) -> CGFloat { width - padding * 2 }
-}

@@ -16,7 +16,7 @@ enum BreakToasts {
     }
 }
 
-/// The break card's centre content: same header band, arch, fonts and
+/// The break card's centre content: same header band, disc, fonts and
 /// per-flower text colours as CardContentView, but the body's centrepiece
 /// is the nudge (title + body) instead of a quote, and the controls are
 /// "Took it ✓" / "5 more minutes" instead of refresh/pin/close.
@@ -54,33 +54,37 @@ private struct BreakCardContentView: View {
     }
     private var glowColor: Color { Color(hex: bloomSpec.outerColorHex).opacity(isDark ? 0.5 : 0.38) }
 
-    private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
+    // Same centre disc as the greeting card, a size down: a nudge carries
+    // far less text, and a disc sized for the greeting would sit half empty.
+    private let diameter: CGFloat = 340
 
     private func capsText(_ s: String) -> Text {
         Text(s.uppercased())
-            .font(.custom("Karla", size: 9.5))
+            .font(.custom("Karla", size: 8.5))
             .fontWeight(.medium)
-            .tracking(2.2)
+            .tracking(2)
     }
 
-    // Must track the .padding(.horizontal:) on the body section below.
-    private let bodyTextWidth = CardMetrics.textWidth(padding: 26)
+    // Chords of the disc at each block's own height — narrow under the top
+    // curve, widest across the middle.
+    private let headerTextWidth: CGFloat = 196
+    private let bodyTextWidth: CGFloat = 258
 
     var body: some View {
         VStack(spacing: 0) {
             // ── Header band ── same flower name + Vietnamese annotation as
             // the greeting card, just without the meaning line under it —
             // there's no room to spare above a two-button nudge.
-            VStack(spacing: 7) {
+            VStack(spacing: 5) {
                 capsText("Take a break")
                     .foregroundColor(secondary)
                 if let flower {
                     (Text(flower.name)
-                        .font(.custom("Fraunces", size: 30))
+                        .font(.custom("Fraunces", size: 26))
                         .tracking(-0.5)
                         .foregroundColor(primary)
                      + Text(flower.nameVi.map { " (\($0))" } ?? "")
-                        .font(.custom("Fraunces", size: 13))
+                        .font(.custom("Fraunces", size: 11.5))
                         .italic()
                         .foregroundColor(secondary))
                         .lineLimit(1)
@@ -88,48 +92,49 @@ private struct BreakCardContentView: View {
                         .allowsTightening(true)
                 }
             }
-            .padding(.top, 46)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 20)
+            .frame(width: headerTextWidth)
+            .padding(.top, 34)
+            .padding(.bottom, 14)
             .frame(maxWidth: .infinity)
             .background(headerTint)
 
             // ── Body: the nudge, where the quote sits on the greeting card ──
-            VStack(spacing: 22) {
-                VStack(spacing: 8) {
-                    Text(nudge.title.noWidow(font: CardFont.fraunces(22), width: bodyTextWidth))
-                        .font(.custom("Fraunces", size: 22))
+            VStack(spacing: 18) {
+                VStack(spacing: 7) {
+                    Text(nudge.title.noWidow(font: CardFont.fraunces(19), width: bodyTextWidth))
+                        .font(.custom("Fraunces", size: 19))
                         .fontWeight(.semibold)
                         .foregroundColor(primary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
-                    Text(nudge.body.noWidow(font: CardFont.karla(13.5), width: bodyTextWidth))
-                        .font(.custom("Karla", size: 13.5))
+                    Text(nudge.body.noWidow(font: CardFont.karla(12), width: bodyTextWidth))
+                        .font(.custom("Karla", size: 12))
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
                 }
+                .frame(width: bodyTextWidth)
 
                 HStack(spacing: 12) {
                     breakButton("Took it ✓", action: onTookIt)
                     breakButton("5 more minutes", action: onSnooze)
                 }
             }
-            .padding(.top, 26)
-            .padding(.horizontal, 26)
-            .padding(.bottom, 40)
+            .padding(.top, 20)
+            .padding(.bottom, 30)
+            .frame(maxWidth: .infinity)
         }
-        .frame(width: CardMetrics.width)
         .fixedSize(horizontal: false, vertical: true)
-        .clipShape(arch)
+        .frame(width: diameter, height: diameter)
+        .clipShape(Circle())
         .background(
-            arch
+            Circle()
                 .fill(cardFill)
                 .shadow(color: glowColor, radius: 12, x: 0, y: 0)
                 .shadow(color: buttonTint.opacity(isDark ? 0.35 : 0.16), radius: 20, x: 0, y: 6)
         )
         .overlay(
-            arch.stroke(rimGradient, lineWidth: 1.5)
+            Circle().stroke(rimGradient, lineWidth: 1.5)
                 .allowsHitTesting(false)
         )
         // No ↺/pin here — a break nudge isn't something to refresh or pin.
@@ -178,7 +183,7 @@ private struct BreakCardContentView: View {
     }
 }
 
-/// The break card's full popover content: same bloom-behind-arch-card
+/// The break card's full popover content: same bloom-behind-disc
 /// composition, same 640x640 frame, as FlowerCardView — the panel doesn't
 /// need to change shape between a greeting and a break nudge. It follows
 /// the same card scale for that reason: the panel is shared, so a break
