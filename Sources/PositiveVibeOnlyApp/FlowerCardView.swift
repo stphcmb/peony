@@ -1,21 +1,13 @@
 import SwiftUI
 import PositiveVibeOnlyCore
 
-/// Reports the natural (content-driven) height of the card column so the
-/// circle can size its diameter to match — the card is authored as a
-/// column of text, and the circle grows to whatever that column needs.
-struct CardHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
-}
-
-/// The centre card: a full circle — the flower's own centre disc — with
-/// two crisply separated sections. The header band — tinted with the
-/// day's flower colour — fills the circle's dome and carries the caps
-/// greeting/date line, the flower name (with its Vietnamese annotation),
-/// and the meaning. The cream body below carries quote + author, the
-/// compliment, and a "TODAY" labelled prompt. Text colour hue tracks the
-/// flower; only lightness changes between light and dark mode.
+/// The centre card, per the 6a mock: an arch (domed top, rounded bottom)
+/// with two crisply separated sections. The header band — tinted with the
+/// day's flower colour — carries the caps greeting/date line, the flower
+/// name (with its Vietnamese annotation), and the meaning. The cream body
+/// below carries quote + author, the compliment, and a "TODAY" labelled
+/// prompt. Text colour hue tracks the flower; only lightness changes
+/// between light and dark mode.
 struct CardContentView: View {
     let greeting: Greeting
     let name: String?
@@ -55,20 +47,11 @@ struct CardContentView: View {
     }
     private var glowColor: Color { Color(hex: bloomSpec.outerColorHex).opacity(isDark ? 0.5 : 0.38) }
 
-    // Seeded near the typical column height so the first frame draws a
-    // circle close to final size; the preference corrects it once the real
-    // layout lands.
-    @State private var contentHeight: CGFloat = 460
-    private var diameter: CGFloat { max(contentHeight, 320) }
+    private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
 
-    // Per-block wrap widths shaped to the circle: widest at the vertical
-    // middle (quote), tapering toward the curved top and bottom so every
-    // line clears the chord at its own height — and the column stays short
-    // enough that the disc doesn't swallow the petals.
-    private let headerTextWidth: CGFloat = 240
-    private let quoteTextWidth: CGFloat = 330
-    private let complimentTextWidth: CGFloat = 300
-    private let promptTextWidth: CGFloat = 260
+    // Must track the .padding(.horizontal:) values on the two sections below.
+    private let headerTextWidth = CardMetrics.textWidth(padding: 24)
+    private let bodyTextWidth = CardMetrics.textWidth(padding: 28)
 
     /// Small-caps section label, the mock's letterspaced style.
     private func capsText(_ s: String) -> Text {
@@ -115,16 +98,16 @@ struct CardContentView: View {
                         .lineSpacing(2.5)
                 }
             }
-            .frame(width: headerTextWidth)
             .padding(.top, 46)
+            .padding(.horizontal, 24)
             .padding(.bottom, 20)
             .frame(maxWidth: .infinity)
             .background(headerTint)
 
             // ── Body ──
-            VStack(spacing: 15) {
+            VStack(spacing: 17) {
                 VStack(spacing: 5) {
-                    Text("\u{201C}\(greeting.quote.text)\u{201D}".noWidow(font: CardFont.fraunces(19), width: quoteTextWidth))
+                    Text("\u{201C}\(greeting.quote.text)\u{201D}".noWidow(font: CardFont.fraunces(19), width: bodyTextWidth))
                         .font(.custom("Fraunces", size: 19))
                         .italic()
                         .fontWeight(.semibold)
@@ -134,31 +117,28 @@ struct CardContentView: View {
                     capsText(greeting.quote.author)
                         .foregroundColor(muted)
                 }
-                .frame(width: quoteTextWidth)
 
-                Text(greeting.compliment.noWidow(font: CardFont.karla(13.5), width: complimentTextWidth))
+                Text(greeting.compliment.noWidow(font: CardFont.karla(13.5), width: bodyTextWidth))
                     .font(.custom("Karla", size: 13.5))
                     .tracking(0.2)
                     .foregroundColor(primary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(2.5)
-                    .frame(width: complimentTextWidth)
 
                 VStack(spacing: 5) {
                     capsText("Today")
                         .foregroundColor(secondary)
-                    Text(greeting.prompt.title.noWidow(font: CardFont.karla(12.5), width: promptTextWidth))
+                    Text(greeting.prompt.title.noWidow(font: CardFont.karla(12.5), width: bodyTextWidth))
                         .font(.custom("Karla", size: 12.5))
                         .foregroundColor(secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2.5)
-                    Text(greeting.prompt.body.noWidow(font: CardFont.karla(11.5), width: promptTextWidth))
+                    Text(greeting.prompt.body.noWidow(font: CardFont.karla(11.5), width: bodyTextWidth))
                         .font(.custom("Karla", size: 11.5))
                         .foregroundColor(muted)
                         .multilineTextAlignment(.center)
                         .lineSpacing(2.5)
                 }
-                .frame(width: promptTextWidth)
 
                 if updateAvailable {
                     Button {
@@ -176,25 +156,15 @@ struct CardContentView: View {
                     .tracking(0.4)
                     .foregroundColor(muted.opacity(0.4))
             }
-            .padding(.top, 20)
-            .padding(.bottom, 38)
-            .frame(maxWidth: .infinity)
+            .padding(.top, 22)
+            .padding(.horizontal, 28)
+            .padding(.bottom, 36)
         }
-        // Natural height regardless of the circle's proposal — without this
-        // the frame below squeezes the texts into truncation.
+        .frame(width: CardMetrics.width)
         .fixedSize(horizontal: false, vertical: true)
-        // The column reports its natural height; the circle's diameter
-        // follows it, so longer quotes grow the disc instead of clipping.
+        .clipShape(arch)
         .background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: CardHeightKey.self, value: proxy.size.height)
-            }
-        )
-        .onPreferenceChange(CardHeightKey.self) { contentHeight = $0 }
-        .frame(width: diameter, height: diameter)
-        .clipShape(Circle())
-        .background(
-            Circle()
+            arch
                 .fill(cardFill)
                 // Close-in tinted glow (no offset) melts the edge into the
                 // petals; the wider offset shadow below keeps the depth.
@@ -202,7 +172,7 @@ struct CardContentView: View {
                 .shadow(color: shadowColor, radius: 20, x: 0, y: 6)
         )
         .overlay(
-            Circle().stroke(rimGradient, lineWidth: 1.5)
+            arch.stroke(rimGradient, lineWidth: 1.5)
                 .allowsHitTesting(false)
         )
         // Two quiet controls in the dome, above the header text: refresh
@@ -333,7 +303,7 @@ struct GiftToast: View {
     }
 }
 
-/// The full popover content: today's bloom behind, the circle card centred
+/// The full popover content: today's bloom behind, the arch card centred
 /// on top, authored in a 640x640 frame per the approved handoff spec and
 /// scaled as a whole by `scaleState` (the Card Size menu).
 struct FlowerCardView: View {

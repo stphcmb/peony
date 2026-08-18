@@ -16,7 +16,7 @@ enum BreakToasts {
     }
 }
 
-/// The break card's centre content: same header band, circle, fonts and
+/// The break card's centre content: same header band, arch, fonts and
 /// per-flower text colours as CardContentView, but the body's centrepiece
 /// is the nudge (title + body) instead of a quote, and the controls are
 /// "Took it ✓" / "5 more minutes" instead of refresh/pin/close.
@@ -54,10 +54,7 @@ private struct BreakCardContentView: View {
     }
     private var glowColor: Color { Color(hex: bloomSpec.outerColorHex).opacity(isDark ? 0.5 : 0.38) }
 
-    // Same content-height-driven circle as CardContentView; seeded near
-    // the break card's typical (shorter) column height.
-    @State private var contentHeight: CGFloat = 340
-    private var diameter: CGFloat { max(contentHeight, 300) }
+    private var arch: ArchShape { ArchShape(topRadiusY: 96, bottomRadius: 48) }
 
     private func capsText(_ s: String) -> Text {
         Text(s.uppercased())
@@ -66,9 +63,8 @@ private struct BreakCardContentView: View {
             .tracking(2.2)
     }
 
-    // Wider than the arch-era column — the circle is widest at its middle,
-    // where the nudge sits, and a shorter column keeps the disc smaller.
-    private let bodyTextWidth: CGFloat = 280
+    // Must track the .padding(.horizontal:) on the body section below.
+    private let bodyTextWidth = CardMetrics.textWidth(padding: 26)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -92,8 +88,8 @@ private struct BreakCardContentView: View {
                         .allowsTightening(true)
                 }
             }
-            .frame(width: 240)
             .padding(.top, 46)
+            .padding(.horizontal, 24)
             .padding(.bottom, 20)
             .frame(maxWidth: .infinity)
             .background(headerTint)
@@ -119,31 +115,21 @@ private struct BreakCardContentView: View {
                     breakButton("5 more minutes", action: onSnooze)
                 }
             }
-            .frame(width: bodyTextWidth)
             .padding(.top, 26)
-            .padding(.bottom, 44)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 26)
+            .padding(.bottom, 40)
         }
-        // Natural height regardless of the circle's proposal — without this
-        // the frame below squeezes the texts into truncation.
+        .frame(width: CardMetrics.width)
         .fixedSize(horizontal: false, vertical: true)
-        // Column height drives the circle's diameter, as on the greeting card.
+        .clipShape(arch)
         .background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: CardHeightKey.self, value: proxy.size.height)
-            }
-        )
-        .onPreferenceChange(CardHeightKey.self) { contentHeight = $0 }
-        .frame(width: diameter, height: diameter)
-        .clipShape(Circle())
-        .background(
-            Circle()
+            arch
                 .fill(cardFill)
                 .shadow(color: glowColor, radius: 12, x: 0, y: 0)
                 .shadow(color: buttonTint.opacity(isDark ? 0.35 : 0.16), radius: 20, x: 0, y: 6)
         )
         .overlay(
-            Circle().stroke(rimGradient, lineWidth: 1.5)
+            arch.stroke(rimGradient, lineWidth: 1.5)
                 .allowsHitTesting(false)
         )
         // No ↺/pin here — a break nudge isn't something to refresh or pin.
@@ -192,7 +178,7 @@ private struct BreakCardContentView: View {
     }
 }
 
-/// The break card's full popover content: same bloom-behind-circle-card
+/// The break card's full popover content: same bloom-behind-arch-card
 /// composition, same 640x640 frame, as FlowerCardView — the panel doesn't
 /// need to change shape between a greeting and a break nudge. It follows
 /// the same card scale for that reason: the panel is shared, so a break
