@@ -156,10 +156,34 @@ public enum BloomCatalog {
             inner: PetalRing(count: 5, width: 108, length: 176, offset: 88, startAngle: 24, tip: .round),
             outerColorHex: "#F3A6A0", innerColorHex: "#DE6E68"
         ),
+        // Jasmine, redrawn 2026-08-20. The old spec was invisible, and the
+        // measurements say why rather than it being a matter of taste:
+        //
+        //   colour — petals were #FFFDF6 drawn over a rim of #FFFDFA on a card
+        //   filled #FFFDFA. That is a 1.002 contrast ratio against the rim
+        //   directly behind them: not "faint", genuinely no edge to see.
+        //
+        //   reach — tips landed at offset + length/2 = 253 against a disc of
+        //   radius 190, so only 63pt of petal cleared the card. Daisy shows
+        //   110pt and Peony 92pt. Five petals that barely clear the rim read as
+        //   a plate with bumps, not a bloom.
+        //
+        // Daisy gets away with a near-white fill (1.018) because fourteen long
+        // petals give it a silhouette even when the fill does not separate.
+        // Jasmine had neither, so both levers move: eight petals reaching the
+        // full 300 (110pt showing), and a pale cream that actually parts from
+        // the rim at 1.126 instead of 1.002.
+        //
+        // Width 116 is 98% arc fill at this offset — petals just meeting, which
+        // gives the scalloped silhouette a bloom needs. Rendered the
+        // alternatives before settling: 84 and 78 read as sun rays, 100 (85%)
+        // still showed gaps and a faint gear look, and 130 (110%) overlapped
+        // far enough to merge back toward the blob this replaced. Eight rounded
+        // petals just touching is also what Jasminum sambac actually does.
         "Jasmine": BloomSpec(
-            outer: PetalRing(count: 5, width: 118, length: 250, offset: 128, tip: .round),
-            inner: PetalRing(count: 5, width: 60, length: 130, offset: 70, startAngle: 36, tip: .round),
-            outerColorHex: "#FFFDF6", innerColorHex: "#F6DFA0"
+            outer: PetalRing(count: 8, width: 116, length: 300, offset: 150, tip: .round),
+            inner: PetalRing(count: 8, width: 62, length: 128, offset: 66, startAngle: 22.5, tip: .round),
+            outerColorHex: "#F8EFDC", innerColorHex: "#EFC75F"
         ),
         "Hydrangea": BloomSpec(
             outer: PetalRing(count: 10, width: 108, length: 258, offset: 132, tip: .squared(baseRadius: 34)),
