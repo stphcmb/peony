@@ -302,6 +302,37 @@ do {
     check("surprise draw avoids repeating the current card", !repeated)
 }
 
+// The card shows ONE of quote/compliment/prompt, chosen per hour. Two things
+// have to hold: every kind must actually come up (a focus stuck on .quote would
+// silently hide two thirds of the content and look like nothing changed), and
+// the choice must stay deterministic per hour like every other component.
+do {
+    let calendar = utcCalendar()
+    let content = makeContent(prompts: [("A", "T", "tb"), ("B", "W", "wb")], quotes: 25, flowers: 24)
+
+    var seen = Set<GreetingFocus>()
+    for hour in 0..<24 {
+        if let g = Selection.greeting(for: content, date: date(2026, 8, 12, calendar, hour: hour), calendar: calendar) {
+            seen.insert(g.focus)
+        }
+    }
+    check("all three focuses appear across a day", seen.count == GreetingFocus.allCases.count)
+
+    let d = date(2026, 8, 12, calendar, hour: 9)
+    let a = Selection.greeting(for: content, date: d, calendar: calendar)
+    let b = Selection.greeting(for: content, date: d, calendar: calendar)
+    check("focus is deterministic within an hour", a?.focus == b?.focus)
+
+    // Surprise Me must not hand back the same focus it is replacing, or a click
+    // reads as "nothing happened" even when the text underneath changed.
+    let current = Selection.randomGreeting(for: content)!
+    var repeatedFocus = false
+    for _ in 0..<40 {
+        if Selection.randomGreeting(for: content, avoiding: current)!.focus == current.focus { repeatedFocus = true }
+    }
+    check("surprise draw avoids repeating the current focus", !repeatedFocus)
+}
+
 if failures > 0 {
     print("\n\(failures) failure(s)")
     exit(1)

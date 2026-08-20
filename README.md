@@ -1,9 +1,9 @@
 # Peony
 
-A menu bar app that gives you a new flower, a quote, and a short
-encouragement every hour, plus one small thing to sit with each day.
-Click the icon, read for ten seconds, get on with your day — or let it
-bloom on its own when the hour turns.
+A menu bar app that gives you a new flower every hour and one short thing
+to read with it — a quote, a compliment, or something to sit with. Click
+the icon, read for ten seconds, get on with your day — or let it bloom on
+its own when the hour turns.
 
 The card isn't a rectangle. It's cut in the shape of the hour's bloom —
 petals around a soft centre, like a sticker someone left on your desk. A
@@ -99,18 +99,20 @@ route never hits any of this.)
 
 ## How it decides what to show you
 
-The flower, quote and encouragement are picked from the date and hour, not
-randomly — so they're the same for everyone on the team in any given hour.
-That's on purpose: it gives you something to compare notes on ("did you see
-the three o'clock flower") instead of everyone getting a different private
-feed. (Surprise Me is the escape hatch: a random draw that doesn't touch
-the hourly pick.)
+Everything is picked from the date and hour, not randomly — so it's the
+same for everyone on the team in any given hour. That's on purpose: it
+gives you something to compare notes on ("did you see the three o'clock
+flower") instead of everyone getting a different private feed. (Surprise Me
+is the escape hatch: a random draw that doesn't touch the hourly pick.)
 
-The fourth block — the prompt — moves at a slower rhythm: fixed for the
-whole day, alternating by day of the week between two pools, each mixing
+**One text per card.** The card used to stack all three — a quote, a
+compliment, and a prompt — and inside a 380pt disc that's more reading than
+a ten-second card can carry. Which one you get also rotates hourly, so you
+still see all three over a day without any single card being a wall.
+
+The prompt pool alternates by day of the week between two sets, each mixing
 three kinds of invitation: a question worth sitting with, a specific act of
-kindness, or a nudge toward rest. An hour is enough for a quote; a prompt
-deserves a day.
+kindness, or a nudge toward rest.
 
 ## Adding your own content
 

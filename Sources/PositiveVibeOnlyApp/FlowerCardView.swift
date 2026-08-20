@@ -115,43 +115,56 @@ struct CardContentView: View {
             .background(headerTint)
 
             // ── Body ──
+            // One text per card, not three. Stacking quote + compliment +
+            // prompt inside a 380pt disc crowded the centre and pushed the
+            // reading against the petals; `greeting.focus` picks which one this
+            // hour shows. The other two are still drawn and still
+            // deterministic — see GreetingFocus.
             VStack(spacing: 12) {
-                VStack(spacing: 4) {
-                    Text("\u{201C}\(greeting.quote.text)\u{201D}".noWidow(font: CardFont.fraunces(16), width: quoteTextWidth))
-                        .font(.custom("Fraunces", size: 16))
-                        .italic()
-                        .fontWeight(.semibold)
+                switch greeting.focus {
+                case .quote:
+                    VStack(spacing: 4) {
+                        Text("\u{201C}\(greeting.quote.text)\u{201D}".noWidow(font: CardFont.fraunces(16), width: quoteTextWidth))
+                            .font(.custom("Fraunces", size: 16))
+                            .italic()
+                            .fontWeight(.semibold)
+                            .foregroundColor(primary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3.5)
+                        capsText(greeting.quote.author)
+                            .foregroundColor(muted)
+                    }
+                    .frame(width: quoteTextWidth)
+
+                case .compliment:
+                    // Sized up from 12pt: alone on the card it is the thing you
+                    // came to read, and at 12 it looked like a caption for
+                    // something that was no longer above it.
+                    Text(greeting.compliment.noWidow(font: CardFont.karla(15), width: quoteTextWidth))
+                        .font(.custom("Karla", size: 15))
+                        .tracking(0.2)
                         .foregroundColor(primary)
                         .multilineTextAlignment(.center)
-                        .lineSpacing(3.5)
-                    capsText(greeting.quote.author)
-                        .foregroundColor(muted)
-                }
-                .frame(width: quoteTextWidth)
+                        .lineSpacing(4)
+                        .frame(width: quoteTextWidth)
 
-                Text(greeting.compliment.noWidow(font: CardFont.karla(12), width: complimentTextWidth))
-                    .font(.custom("Karla", size: 12))
-                    .tracking(0.2)
-                    .foregroundColor(primary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(2)
+                case .prompt:
+                    VStack(spacing: 5) {
+                        capsText("Today")
+                            .foregroundColor(secondary)
+                        Text(greeting.prompt.title.noWidow(font: CardFont.karla(14), width: complimentTextWidth))
+                            .font(.custom("Karla", size: 14))
+                            .foregroundColor(primary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3)
+                        Text(greeting.prompt.body.noWidow(font: CardFont.karla(11.5), width: complimentTextWidth))
+                            .font(.custom("Karla", size: 11.5))
+                            .foregroundColor(secondary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(2.5)
+                    }
                     .frame(width: complimentTextWidth)
-
-                VStack(spacing: 4) {
-                    capsText("Today")
-                        .foregroundColor(secondary)
-                    Text(greeting.prompt.title.noWidow(font: CardFont.karla(11), width: promptTextWidth))
-                        .font(.custom("Karla", size: 11))
-                        .foregroundColor(secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2.5)
-                    Text(greeting.prompt.body.noWidow(font: CardFont.karla(10), width: promptTextWidth))
-                        .font(.custom("Karla", size: 10))
-                        .foregroundColor(muted)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
                 }
-                .frame(width: promptTextWidth)
 
                 if updateAvailable {
                     Button {

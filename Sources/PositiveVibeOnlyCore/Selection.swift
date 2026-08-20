@@ -1,16 +1,35 @@
 import Foundation
 
+/// Which one of the three texts a card shows. The card used to stack all
+/// three — quote, compliment and prompt — and inside a 380pt disc that is
+/// more reading than a ten-second card can carry; the text crowded the
+/// centre and pushed against the petals. One per card, rotating, says the
+/// same amount over a day without any single card being a wall.
+///
+/// All three values stay on `Greeting`. The unshown two are still drawn and
+/// still deterministic, so this is a presentation choice the card makes, not
+/// data thrown away — and switching back to stacking them needs no change
+/// here.
+public enum GreetingFocus: String, Equatable, Sendable, CaseIterable {
+    case quote
+    case compliment
+    case prompt
+}
+
 public struct Greeting {
     public let quote: Quote
     public let compliment: String
     public let prompt: PromptItem
     public let flower: Flower?
+    public let focus: GreetingFocus
 
-    public init(quote: Quote, compliment: String, prompt: PromptItem, flower: Flower?) {
+    public init(quote: Quote, compliment: String, prompt: PromptItem, flower: Flower?,
+                focus: GreetingFocus = .quote) {
         self.quote = quote
         self.compliment = compliment
         self.prompt = prompt
         self.flower = flower
+        self.focus = focus
     }
 }
 
@@ -48,7 +67,13 @@ public enum Selection {
         let flower = content.flowers.isEmpty ? nil
             : content.flowers[pick(slot: slot, salt: 3, count: content.flowers.count)]
 
-        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
+        // Which of the three to show gets its own salt, so it rotates
+        // independently of which quote/compliment/prompt were drawn — with a
+        // shared index the focus would lock to the pool position and you would
+        // see, say, a compliment only ever paired with compliment 2.
+        let focus = GreetingFocus.allCases[pick(slot: slot, salt: 5, count: GreetingFocus.allCases.count)]
+
+        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower, focus: focus)
     }
 
     /// Deterministic draw for one component of the hour's greeting. The
@@ -78,7 +103,11 @@ public enum Selection {
               let compliment = draw(content.compliments, avoiding: { $0 == current?.compliment }),
               let prompt = draw(content.prompts, avoiding: { $0.title == current?.prompt.title }) else { return nil }
         let flower = draw(content.flowers, avoiding: { $0.name == current?.flower?.name })
-        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower)
+        // The focus avoids repeating too: a Surprise Me that hands back another
+        // compliment reads as "nothing happened" even when all three texts
+        // changed underneath.
+        let focus = draw(GreetingFocus.allCases, avoiding: { $0 == current?.focus }) ?? .quote
+        return Greeting(quote: quote, compliment: compliment, prompt: prompt, flower: flower, focus: focus)
     }
 
     /// Random element, excluding the current one when the pool is big
